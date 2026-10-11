@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Wingman — Week</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&amp;family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#2F55D4}a:hover{color:#1E3C9E}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; position: relative; overflow: hidden; background: #F4F5F7; color: #141826; font-family: 'DM Sans', system-ui, sans-serif; display: flex; flex-direction: column">
+
+  <header style="padding: 56px 24px 16px; display: flex; justify-content: space-between; align-items: center">
+    <div style="display: flex; flex-direction: column; gap: 4px">
+      <span style="font-size: 14px; font-weight: 500; color: #5B6175; letter-spacing: 0.02em">OCT 12 – 18</span>
+      <h1 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-size: 32px; font-weight: 700; line-height: 1.1">Next week</h1>
+    </div>
+    <div style="display: flex; gap: 8px">
+      <button aria-label="Previous week" style="width: 44px; height: 44px; border-radius: 14px; border: 1px solid #E3E5EB; background: #FFFFFF; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="#141826" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+      <button aria-label="Next week" style="width: 44px; height: 44px; border-radius: 14px; border: 1px solid #E3E5EB; background: #FFFFFF; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="#141826" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+    </div>
+  </header>
+
+  <section aria-label="Week load" style="margin: 0 24px; padding: 16px 12px 12px; background: #FFFFFF; border-radius: 24px; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px">
+    <sc-for list="{{days}}" as="d" hint-placeholder-count="7">
+      <button style="{{d.btnStyle}}" aria-label="{{d.label}}">
+        <span style="height: 72px; width: 12px; border-radius: 6px; background: #EEF0F4; display: flex; flex-direction: column; justify-content: flex-end; overflow: hidden">
+          <span style="{{d.barStyle}}"></span>
+        </span>
+        <span style="font-size: 11px; font-weight: 500">{{d.dow}}</span>
+        <span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 17px; font-weight: 700">{{d.num}}</span>
+      </button>
+    </sc-for>
+  </section>
+
+  <section style="margin: 16px 24px 0; display: flex; flex-direction: column; gap: 10px">
+    <div style="display: flex; justify-content: space-between; font-size: 13px; color: #5B6175; font-weight: 500"><span>Where your time goes</span><span>31 h planned</span></div>
+    <div role="img" aria-label="Work 55 percent, Personal 20 percent, Health 15 percent, Errands 10 percent" style="display: flex; height: 12px; border-radius: 6px; overflow: hidden; gap: 2px">
+      <span style="flex: 55; background: #2F55D4"></span>
+      <span style="flex: 20; background: #D24B1F"></span>
+      <span style="flex: 15; background: #17805A"></span>
+      <span style="flex: 10; background: #7044D6"></span>
+    </div>
+    <div style="display: flex; gap: 14px; font-size: 12px; color: #141826; flex-wrap: wrap">
+      <span style="display: flex; gap: 6px; align-items: center"><span style="width: 8px; height: 8px; border-radius: 4px; background: #2F55D4"></span>Work</span>
+      <span style="display: flex; gap: 6px; align-items: center"><span style="width: 8px; height: 8px; border-radius: 4px; background: #D24B1F"></span>Personal</span>
+      <span style="display: flex; gap: 6px; align-items: center"><span style="width: 8px; height: 8px; border-radius: 4px; background: #17805A"></span>Health</span>
+      <span style="display: flex; gap: 6px; align-items: center"><span style="width: 8px; height: 8px; border-radius: 4px; background: #7044D6"></span>Errands</span>
+    </div>
+  </section>
+
+  <div style="padding: 22px 24px 8px; display: flex; justify-content: space-between; align-items: baseline">
+    <h2 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-size: 20px; font-weight: 700">Monday, Oct 12</h2>
+    <span style="font-size: 13px; color: #5B6175">6 items</span>
+  </div>
+
+  <ul style="list-style: none; margin: 0; padding: 0 24px; display: flex; flex-direction: column; gap: 8px">
+    <li style="background: #FFFFFF; border-radius: 16px; padding: 12px 14px; display: flex; gap: 12px; align-items: center">
+      <span style="font-size: 13px; font-weight: 500; color: #5B6175; width: 40px">08:00</span>
+      <span style="width: 8px; height: 8px; border-radius: 4px; background: #17805A"></span>
+      <span style="font-size: 15px; font-weight: 500">Gym — legs</span>
+    </li>
+    <li style="background: #FFFFFF; border-radius: 16px; padding: 12px 14px; display: flex; gap: 12px; align-items: center">
+      <span style="font-size: 13px; font-weight: 500; color: #5B6175; width: 40px">09:30</span>
+      <span style="width: 8px; height: 8px; border-radius: 4px; background: #2F55D4"></span>
+      <span style="font-size: 15px; font-weight: 500">Client review</span>
+    </li>
+    <li style="background: #FFFFFF; border-radius: 16px; padding: 12px 14px; display: flex; gap: 12px; align-items: center">
+      <span style="font-size: 13px; font-weight: 500; color: #5B6175; width: 40px">13:00</span>
+      <span style="width: 8px; height: 8px; border-radius: 4px; background: #2F55D4"></span>
+      <span style="font-size: 15px; font-weight: 500">Ship Q4 report</span>
+    </li>
+  </ul>
+
+  <nav aria-label="Main" style="position: absolute; left: 16px; right: 16px; bottom: 24px; height: 68px; background: #FFFFFF; border-radius: 24px; box-shadow: 0 8px 24px rgba(20,24,38,0.10); display: flex; justify-content: space-around; align-items: center">
+    <a href="Main.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 52px; text-decoration: none; color: #5B6175; font-size: 11px; font-weight: 500">
+      <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.8"></circle><path d="M12 7.5V12l3 2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path></svg>Today</a>
+    <a href="Week.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 52px; text-decoration: none; color: #141826; font-size: 11px; font-weight: 700">
+      <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="3" fill="none" stroke="currentColor" stroke-width="2"></rect><path d="M3.5 10h17M8 3v4M16 3v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>Week</a>
+    <a href="QuickAdd.dc.html" aria-label="Add task or reminder" style="width: 56px; height: 56px; border-radius: 20px; background: #D24B1F; display: flex; align-items: center; justify-content: center; margin-top: -28px; box-shadow: 0 6px 16px rgba(210,75,31,0.35)">
+      <svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round"></path></svg></a>
+    <a href="Reminders.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 52px; text-decoration: none; color: #5B6175; font-size: 11px; font-weight: 500">
+      <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z M10 20.5a2 2 0 0 0 4 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"></path></svg>Reminders</a>
+    <a href="Notifications.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 52px; text-decoration: none; color: #5B6175; font-size: 11px; font-weight: 500">
+      <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.8"></circle><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path></svg>Settings</a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const raw = [
+      ['Mon', 12, 0.85], ['Tue', 13, 0.6], ['Wed', 14, 0.95], ['Thu', 15, 0.4],
+      ['Fri', 16, 0.7], ['Sat', 17, 0.25], ['Sun', 18, 0.5]
+    ];
+    const selected = 'Mon';
+    const days = raw.map(([dow, num, load]) => {
+      const on = dow === selected;
+      const color = load > 0.8 ? '#D24B1F' : '#2F55D4';
+      return {
+        dow, num,
+        label: dow + ' ' + num + ', ' + Math.round(load * 100) + '% booked',
+        btnStyle: 'border: none; border-radius: 14px; padding: 8px 0; min-height: 44px; display: flex; flex-direction: column; align-items: center; gap: 6px; font-family: inherit; ' +
+          (on ? 'background: #141826; color: #FFFFFF;' : 'background: transparent; color: #141826;'),
+        barStyle: 'display: block; width: 12px; border-radius: 6px; height: ' + Math.round(load * 72) + 'px; background: ' + color + ';'
+      };
+    });
+    return { days };
+  }
+}
+</script>
+</body>
+</html>

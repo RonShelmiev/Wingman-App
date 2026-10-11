@@ -1,0 +1,19 @@
+{
+  "v": 3,
+  "createdOnFiles": {"v": 1, "at": "2026-10-11T10:15:00Z"},
+  "title": "Wingman App Designs",
+  "launch": {"view": "canvas"},
+  "pages": [],
+  "boards": {
+    "Main.dc.html": {"x": 0, "y": 0, "w": 390, "h": 844, "title": "1 · Today"},
+    "Week.dc.html": {"x": 470, "y": 0, "w": 390, "h": 844, "title": "2 · Week"},
+    "Reminders.dc.html": {"x": 940, "y": 0, "w": 390, "h": 844, "title": "3 · Reminders"},
+    "QuickAdd.dc.html": {"x": 1410, "y": 0, "w": 390, "h": 844, "title": "4 · Quick add"},
+    "Notifications.dc.html": {"x": 1880, "y": 0, "w": 390, "h": 844, "title": "5 · Notifications"}
+  },
+  "order": ["Main.dc.html", "Week.dc.html", "Reminders.dc.html", "QuickAdd.dc.html", "Notifications.dc.html"],
+  "notes": {
+    "flow": {"x": 0, "y": -300, "text": "Wingman — core screens", "kind": "title1", "maxW": 2270}
+  },
+  "designSystems": []
+}

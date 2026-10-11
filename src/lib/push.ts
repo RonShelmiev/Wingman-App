@@ -6,6 +6,8 @@ import type { State } from './store';
 import { getState, subscribe } from './store';
 import { addDays, at, toDateStr, toTimeStr } from './dates';
 import { inWindow, isDoneOn, itemsOn, occurrenceKey, occursOn, reminderTime } from './schedule';
+import { t, tn } from './i18n';
+import { prettyDate } from './dates';
 
 export const SCHEDULE_DAYS = 14;
 const MAX = 500;
@@ -34,7 +36,7 @@ export function buildSchedule(s: State, now: Date, opts: { email: boolean }): Sc
         key,
         fireAt: fireAt.getTime(),
         title: alarm ? `⏰ ${item.title}` : item.title,
-        body: alarm ? `Alarm · ${time}` : item.remindOffsetMin ? `Starts ${date === toDateStr(fireAt) ? 'at' : `on ${date} at`} ${time}` : time,
+        body: alarm ? `${t('Alarm')} · ${time}` : item.remindOffsetMin ? (date === toDateStr(fireAt) ? t('Starts at {time}', { time }) : t('{date} at {time}', { date: prettyDate(date), time })) : time,
         alarm,
         email,
       });
@@ -46,13 +48,13 @@ export function buildSchedule(s: State, now: Date, opts: { email: boolean }): Sc
     if (brief > now && !s.fired[`brief@${date}`] && !quiet(brief)) {
       const first = dayItems.find((i) => i.start);
       out.push({
-        key: `brief@${date}`, fireAt: brief.getTime(), title: 'Your day with Wingman', alarm: false, email: false,
-        body: dayItems.length ? `${dayItems.length} thing${dayItems.length > 1 ? 's' : ''} today${first ? `, first at ${first.start}: ${first.title}` : ''}.` : 'Nothing planned yet. Add a few things for today.',
+        key: `brief@${date}`, fireAt: brief.getTime(), title: t('Your day with Wingman'), alarm: false, email: false,
+        body: dayItems.length ? tn(dayItems.length, '{n} thing today', '{n} things today') + (first ? t(', first at {time}: {title}', { time: first.start!, title: first.title }) : '') + '.' : t('Nothing planned yet. Add a few things for today.'),
       });
     }
     const recap = at(date, settings.eveningRecap);
     if (recap > now && !s.fired[`recap@${date}`] && !quiet(recap) && dayItems.length) {
-      out.push({ key: `recap@${date}`, fireAt: recap.getTime(), title: 'Evening recap', body: 'Open Wingman to tick off today and move what’s left to tomorrow.', alarm: false, email: false });
+      out.push({ key: `recap@${date}`, fireAt: recap.getTime(), title: t('Evening recap'), body: t('Tap to tick off today and move what’s left to tomorrow.'), alarm: false, email: false });
     }
   }
   return out.sort((a, b) => a.fireAt - b.fireAt).slice(0, MAX);

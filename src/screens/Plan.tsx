@@ -7,6 +7,7 @@ import { planDay, type Suggestion } from '../lib/planner';
 import { learnedDuration, preferenceFor } from '../lib/insights';
 import { Sheet } from '../components/Sheet';
 import { Icon } from '../components/Icon';
+import { t, tn } from '../lib/i18n';
 
 export function Plan({ today, now, onClose }: { today: string; now: Date; onClose: () => void }) {
   const items = useStore((s) => s.items);
@@ -49,19 +50,19 @@ export function Plan({ today, now, onClose }: { today: string; now: Date; onClos
   };
 
   return (
-    <Sheet label="Plan with Wingman" onClose={onClose}>
+    <Sheet label={t('Plan with Wingman')} onClose={onClose}>
       <div className="row-between" style={{ alignItems: 'center' }}>
-        <h1 style={{ fontSize: 26 }}>Plan with Wingman</h1>
-        <button className="btn small" onClick={onClose} aria-label="Close" style={{ width: 44, height: 44, padding: 0 }}><Icon name="close" size={20} /></button>
+        <h1 style={{ fontSize: 26 }}>{t('Plan with Wingman')}</h1>
+        <button className="btn small" onClick={onClose} aria-label={t('Close')} style={{ width: 44, height: 44, padding: 0 }}><Icon name="close" size={20} /></button>
       </div>
-      <div className="seg" role="group" aria-label="Day to plan">
-        <button aria-pressed={which === 'today'} onClick={() => { setWhich('today'); setRejected(new Set()); }}>Today</button>
-        <button aria-pressed={which === 'tomorrow'} onClick={() => { setWhich('tomorrow'); setRejected(new Set()); }}>Tomorrow</button>
+      <div className="seg" role="group" aria-label={t('Day to plan')}>
+        <button aria-pressed={which === 'today'} onClick={() => { setWhich('today'); setRejected(new Set()); }}>{t('Today')}</button>
+        <button aria-pressed={which === 'tomorrow'} onClick={() => { setWhich('tomorrow'); setRejected(new Set()); }}>{t('Tomorrow')}</button>
       </div>
       <p className="subtitle">
         {suggestions.length
-          ? `${suggestions.length} task${suggestions.length > 1 ? 's' : ''} without a time. Here's where they fit — tap ✓ to keep or skip each.`
-          : unplaced.length ? 'No free gap is long enough. Try tomorrow, or shorten a task.' : 'Everything already has a time.'}
+          ? tn(suggestions.length, '{n} task without a time. Here’s where it fits — tap ✓ to keep or skip.', '{n} tasks without a time. Here’s where they fit — tap ✓ to keep or skip each.')
+          : unplaced.length ? t('No free gap is long enough. Try tomorrow, or shorten a task.') : t('Everything already has a time.')}
       </p>
 
       <ol className="timeline">
@@ -81,7 +82,7 @@ export function Plan({ today, now, onClose }: { today: string; now: Date; onClos
                   <span className="name">{i.title}</span>
                   <span className="sub">{areaOf(i)?.name} · {formatDuration(r.s!.durationMin)} · {r.s!.reason}</span>
                 </div>
-                <button className="accept" aria-pressed={on} aria-label={`${on ? 'Skip' : 'Keep'}: ${i.title} at ${r.t}`}
+                <button className="accept" aria-pressed={on} aria-label={`${on ? t('Skip') : t('Keep')}: ${i.title} · ${r.t}`}
                   onClick={() => setRejected((s) => { const n = new Set(s); if (on) n.add(i.id); else n.delete(i.id); return n; })}>
                   <Icon name="check" size={18} width={2.4} />
                 </button>
@@ -91,12 +92,12 @@ export function Plan({ today, now, onClose }: { today: string; now: Date; onClos
         })())}
       </ol>
 
-      {unplaced.length > 0 && <p className="note">Didn't fit: {unplaced.map((i) => i.title).join(', ')}.</p>}
-      <span style={{ textAlign: 'center', fontSize: 13, color: 'var(--muted-2)' }}>Keeps {settings.bufferMin} min breathing room between items · plans {settings.dayStart}–{settings.dayEnd}</span>
+      {unplaced.length > 0 && <p className="note">{t('Didn’t fit:')} {unplaced.map((i) => i.title).join(', ')}.</p>}
+      <span style={{ textAlign: 'center', fontSize: 13, color: 'var(--muted-2)' }}>{t('Keeps {n} min breathing room between items · plans {from}–{to}', { n: settings.bufferMin, from: settings.dayStart, to: settings.dayEnd })}</span>
       <div className="btn-row">
-        <button className="btn" onClick={onClose}>Cancel</button>
+        <button className="btn" onClick={onClose}>{t('Cancel')}</button>
         <button className="btn primary grow" disabled={!accepted.length} style={{ opacity: accepted.length ? 1 : 0.5 }} onClick={apply}>
-          {accepted.length ? `Accept ${accepted.length}` : 'Nothing to accept'}
+          {accepted.length ? t('Accept {n}', { n: accepted.length }) : t('Nothing to accept')}
         </button>
       </div>
     </Sheet>

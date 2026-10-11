@@ -1,8 +1,8 @@
 // Wingman service worker: offline app shell + notification clicks.
-const CACHE = 'wingman-v2';
+const CACHE = 'wingman-v3';
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(CACHE).then((c) => c.addAll(['/', '/index.html', '/icon.svg', '/manifest.webmanifest'])));
+  event.waitUntil(caches.open(CACHE).then((c) => c.addAll(['/', '/index.html', '/icon.svg', '/icons/icon-192.png', '/manifest.webmanifest'])));
   self.skipWaiting();
 });
 
@@ -41,8 +41,8 @@ self.addEventListener('push', (event) => {
     self.registration.showNotification(data.title || 'Wingman', {
       body: data.body || '',
       tag: data.tag,
-      icon: '/icon.svg',
-      badge: '/icon.svg',
+      icon: '/icons/icon-192.png',
+      badge: '/icons/icon-192.png',
       requireInteraction: !!data.alarm,
       renotify: true,
       vibrate: data.alarm ? [400, 200, 400, 200, 400] : [200],
@@ -65,10 +65,12 @@ self.addEventListener('notificationclick', (event) => {
     );
     return;
   }
+  // The evening recap opens the "move to tomorrow" sheet.
+  const url = data.tag && String(data.tag).startsWith('recap@') ? '/?recap=1' : '/';
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((wins) => {
-      if (wins.length) return wins[0].focus();
-      return self.clients.openWindow('/');
+      if (wins.length) return (url === '/' ? Promise.resolve(wins[0]) : wins[0].navigate(url)).then((w) => (w || wins[0]).focus());
+      return self.clients.openWindow(url);
     })
   );
 });

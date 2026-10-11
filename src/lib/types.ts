@@ -6,7 +6,7 @@ export type Repeat =
   | { type: 'daily' }
   | { type: 'weekly'; weekday: number } // 0 = Sunday
   | { type: 'everyNDays'; n: number }
-  | { type: 'weekdays' } // Monday–Friday
+  | { type: 'weekdays'; days?: number[] } // work days; default Monday–Friday (Israel: Sunday–Thursday)
   | { type: 'monthly' } // same day of month as `date` (last day if the month is shorter)
   | { type: 'yearly' }; // same day and month as `date` (birthdays, anniversaries)
 
@@ -36,6 +36,8 @@ export interface Item {
   done: boolean;
   /** Repeating items: dates (YYYY-MM-DD) completed. */
   doneDates: string[];
+  /** Repeating items: occurrences removed or moved one at a time ("just this one"). */
+  skipDates?: string[];
   createdAt: string;
   /** Last change, for merging between devices. */
   updatedAt?: string;
@@ -74,4 +76,11 @@ export interface Settings {
   name: string;
   email: string;
   theme: 'system' | 'light' | 'dark';
+  language: 'en' | 'he';
+  /** 0 = weeks start on Sunday, 1 = Monday. */
+  weekStart: 0 | 1;
+  /** Days counted as work days for "weekdays" repeats (0 = Sunday). */
+  workDays: number[];
+  /** Finished the welcome screens. */
+  onboarded: boolean;
 }

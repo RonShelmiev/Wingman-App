@@ -37,7 +37,11 @@ export function DoneCheck({ size = 22 }: { size?: number }) {
 }
 
 export function AppMark({ size = 20 }: { size?: number }) {
+  // Same two-chevron mark as the app icon.
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true"><path d="M3 14l9-9 9 9h-4l-5-5-5 5z" fill="#fff" /></svg>
+    <svg width={size} height={size} viewBox="96 132 320 244" aria-hidden="true">
+      <path d="M104 292 256 140l152 152h-70l-82-82-82 82z" fill="#fff" />
+      <path d="M178 368 256 290l78 78h-52l-26-26-26 26z" fill="#fff" fillOpacity=".72" />
+    </svg>
   );
 }

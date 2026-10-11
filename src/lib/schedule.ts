@@ -4,6 +4,7 @@ import { addDays, at, daysBetween, parseDate } from './dates';
 /** Does this item happen on `date`? */
 export function occursOn(item: Item, date: string): boolean {
   if (!item.date || date < item.date) return false;
+  if (item.skipDates?.includes(date)) return false;
   const r = item.repeat;
   switch (r.type) {
     case 'none':
@@ -14,10 +15,8 @@ export function occursOn(item: Item, date: string): boolean {
       return parseDate(date).getDay() === r.weekday;
     case 'everyNDays':
       return daysBetween(item.date, date) % Math.max(1, r.n) === 0;
-    case 'weekdays': {
-      const dow = parseDate(date).getDay();
-      return dow >= 1 && dow <= 5;
-    }
+    case 'weekdays':
+      return (r.days ?? [1, 2, 3, 4, 5]).includes(parseDate(date).getDay());
     case 'monthly':
       return sameDayOfMonth(item.date, date);
     case 'yearly':
@@ -114,4 +113,25 @@ export function dueReminders(
 export function inWindow(time: string, start: string, end: string): boolean {
   if (start === end) return false;
   return start < end ? time >= start && time < end : time >= start || time < end;
+}
+
+export interface Upcoming { item: Item; date: string; inDays: number }
+
+/**
+ * "Coming up" on Today: birthdays/yearly things within 30 days, and one-off events or reminders within a week.
+ * Daily/weekly routines are left out (they'd crowd the card).
+ */
+export function comingUp(items: Item[], today: string, limit = 4): Upcoming[] {
+  const out: Upcoming[] = [];
+  for (const item of items) {
+    const r = item.repeat.type;
+    if (r !== 'none' && r !== 'yearly' && r !== 'monthly') continue;
+    if (r === 'none' && (item.done || item.kind === 'task')) continue;
+    const date = nextOccurrence(item, addDays(today, 1));
+    if (!date) continue;
+    const inDays = daysBetween(today, date);
+    const horizon = r === 'yearly' ? 30 : r === 'monthly' ? 3 : 7;
+    if (inDays <= horizon) out.push({ item, date, inDays });
+  }
+  return out.sort((a, b) => a.inDays - b.inDays || (a.item.start ?? '').localeCompare(b.item.start ?? '')).slice(0, limit);
 }

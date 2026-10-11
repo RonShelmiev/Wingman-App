@@ -1,5 +1,6 @@
 import type { Item } from './types';
 import { minToTime, timeToMin } from './dates';
+import { t } from './i18n';
 
 export interface Suggestion {
   itemId: string;
@@ -90,7 +91,7 @@ export function planDay(fixed: Item[], toPlace: Item[], opts: PlanOptions): { su
       itemId: task.id,
       start: minToTime(placed),
       durationMin: d,
-      reason: [overdue ? 'overdue, so first' : productive ? 'when you usually get this done' : 'next free slot', note].filter(Boolean).join(' · '),
+      reason: [overdue ? t('overdue, so first') : productive ? t('when you usually get this done') : t('next free slot'), note].filter(Boolean).join(' · '),
     });
   }
 

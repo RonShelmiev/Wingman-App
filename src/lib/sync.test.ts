@@ -10,7 +10,7 @@ const item = (id: string, updatedAt: string, over: Partial<Item> = {}): Item => 
 });
 const base = (over: Partial<State> = {}): State => ({
   items: [], areas: [{ id: 'work', name: 'Work', color: '#000', updatedAt: T(0) }],
-  settings: { pushEnabled: true, emailEnabled: false, morningBrief: '07:30', eveningRecap: '21:00', quietStart: '22:00', quietEnd: '07:00', dayStart: '08:00', dayEnd: '21:00', bufferMin: 15, name: '', email: '', theme: 'system' },
+  settings: { pushEnabled: true, emailEnabled: false, morningBrief: '07:30', eveningRecap: '21:00', quietStart: '22:00', quietEnd: '07:00', dayStart: '08:00', dayEnd: '21:00', bufferMin: 15, name: '', email: '', theme: 'system', language: 'en', weekStart: 1, workDays: [1, 2, 3, 4, 5], onboarded: true },
   fired: {}, snoozes: {}, history: [], timer: null, deleted: {}, settingsUpdatedAt: T(0), historyClearedAt: null, sync: null, ...over,
 });
 const NOW = new Date(Date.UTC(2026, 9, 11, 12));

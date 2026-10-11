@@ -1,5 +1,6 @@
 import type { Channel, Kind, Repeat } from './types';
 import { addDays, parseDate, toDateStr } from './dates';
+import { parseHebrew } from './parseHe';
 
 export interface Parsed {
   title: string;
@@ -40,7 +41,9 @@ const AREA_HINTS: Record<string, RegExp> = {
  * Turn "Dentist Thursday 4:30pm remind me a day before" into structured fields.
  * Anything recognised is removed from the title; the rest becomes the title.
  */
-export function parseQuick(input: string, now: Date): Parsed {
+export function parseQuick(input: string, now: Date, opts: { workDays?: number[] } = {}): Parsed {
+  const workDays = opts.workDays ?? [1, 2, 3, 4, 5];
+  if (/[\u0590-\u05FF]/.test(input)) return parseHebrew(input, now, workDays);
   let text = ` ${input.trim()} `;
   const today = toDateStr(now);
   const out: Parsed = { title: '', date: null, start: null, durationMin: null, remindOffsetMin: null, channel: null, repeat: { type: 'none' }, kind: 'task', areaGuess: null };
@@ -76,7 +79,7 @@ export function parseQuick(input: string, now: Date): Parsed {
   });
 
   // Repeat
-  take(/\b(?:on |every )?(weekdays|every weekday|work ?days)\b/i, () => (out.repeat = { type: 'weekdays' }));
+  take(/\b(?:on |every )?(weekdays|every weekday|work ?days)\b/i, () => (out.repeat = { type: 'weekdays', days: workDays }));
   take(/\b(every ?day|daily)\b/i, () => (out.repeat = { type: 'daily' }));
   take(/\b(every month|monthly)\b/i, () => (out.repeat = { type: 'monthly' }));
   take(/\b(every year|yearly|annually)\b/i, () => (out.repeat = { type: 'yearly' }));

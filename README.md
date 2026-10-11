@@ -8,6 +8,7 @@ A real-life assistant app: plan your day, set reminders and alarms, see your tim
 - **Phase 2 — App logic** ✅ working installable web app (PWA): Today, Week, Reminders, Settings, Quick add, Plan with Wingman, alarms.
 - **Phase 3 — Background delivery** ✅ push notifications (and optional email) while the app is closed, via a small server on Vercel.
 - **Phase 4 — Your main planner** ✅ yearly/monthly/weekday repeats (birthdays!), backup & encrypted sync between devices, smarter planning that learns from you, dark mode.
+- **Phase 5 — Final touches** ✅ app icon & launch screens, undo, "just this one or all", welcome screens, swipe actions, move to tomorrow + evening recap, Coming up, celebration, full Hebrew (RTL + Hebrew quick add).
 - **Hosting** 📖 step-by-step guide: [`docs/HOSTING_VERCEL.md`](docs/HOSTING_VERCEL.md)
 
 Docs: [`docs/DESIGN.md`](docs/DESIGN.md) · [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) · [`CHANGELOG.md`](CHANGELOG.md) (every push is documented)
@@ -28,7 +29,8 @@ npm run preview    # serve the build (service worker + install enabled)
 src/lib/          Logic: types, dates, parser, scheduler, planner, store, notifications
 src/screens/      Today, Week, Reminders, Settings, QuickAdd, Plan, AlarmOverlay
 src/components/   Icons, item row, bottom sheet
-public/           PWA manifest, service worker (push + offline), icon
+public/           PWA manifest, service worker (push + offline), icons, iPhone launch screens
+scripts/          make-icons.mjs (renders icons/launch screens)
 api/              Vercel serverless routes: config, sync, tick, snooze, ack, vault
 server/           Server logic, Redis/in-memory storage, push + email senders
 design/project/   Design canvas sources (.dc.html per screen + canvas.json)

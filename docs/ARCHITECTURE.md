@@ -16,6 +16,10 @@ React 19 + TypeScript + Vite, built as a PWA. Your data lives in the browser (`l
 | `insights.ts` | Learning: durations from focus-timer sessions (per title, then per life area) and productive hours from when you tick things off. Feeds the planner and the Settings "learned" card. |
 | `sync.ts` | Device sync rules (merge: newest change per item wins, deletions carry over, device-only settings stay local), sync codes, AES-GCM encryption, backup file format. |
 | `syncEngine.ts` | Runs sync: download → decrypt → merge → encrypt → upload with version check; retries on conflicts; triggered on change, every 2 min, on focus and when back online. |
+| `i18n.ts`, `he.ts` | Translations: English text is the key, `HE` holds Hebrew; `t()`/`tn()`; a test fails if any string lacks Hebrew. Dates/durations in `dates.ts` follow the language. |
+| `parseHe.ts` | Hebrew Quick add (bounded by spaces/punctuation because JS `\b` doesn't see Hebrew letters). `parseQuick` picks it when the text contains Hebrew. |
+| `itemActions.ts` | Tick, delete, move, postpone, save-edit — one place, so every screen behaves the same; wraps them in Undo and asks "just this one or all" for repeating items. |
+| `undo.ts`, `ask.ts`, `celebrate.ts` | Undo bar state, the scope question (as a promise), and the all-done celebration trigger. |
 | `notify.ts` | Service-worker registration, system notifications, alarm sound (Web Audio, no sound file) and vibration. |
 
 ## Reminder engine (`App.tsx`)
@@ -63,6 +67,10 @@ cron-job.org ──every minute──▶ /api/tick ─────────�
 - Ticking a task off records a completion (time of day, planned minutes). The focus timer (edit sheet → Start focus timer) also records actual minutes.
 - After 2 timed sessions of the same task, Quick add and the planner use your real duration; after 3 in a life area, tasks there are padded if you usually run over (0.6–2×).
 - After 8 completions, Plan with Wingman prefers the hours you usually get things done (per life area once it has 5+), but overdue tasks still go first.
+
+## Repeating items: "just this one"
+
+Each repeating item can carry `skipDates`. Deleting one occurrence adds its date; changing one occurrence adds its date **and** creates a one-off copy with the change. "All of them" edits the series itself.
 
 ## Known limits (honest)
 

@@ -1,6 +1,7 @@
 // What Wingman learns from what you finish: how long things really take, and when you get things done.
 import type { Area, Completion, Item } from './types';
 import { formatDuration } from './dates';
+import { t } from './i18n';
 
 export const HISTORY_LIMIT = 400;
 
@@ -29,11 +30,11 @@ export function areaFactor(history: Completion[], areaId: string): number | null
 /** A better duration for planning this item, with a short note — or null if Wingman doesn't know better. */
 export function learnedDuration(history: Completion[], item: Item): { min: number; note: string } | null {
   const byTitle = durationForTitle(history, item.title);
-  if (byTitle && byTitle !== item.durationMin) return { min: byTitle, note: `usually takes you ${formatDuration(byTitle)}` };
+  if (byTitle && byTitle !== item.durationMin) return { min: byTitle, note: t('usually takes you {d}', { d: formatDuration(byTitle) }) };
   const f = areaFactor(history, item.areaId);
   if (f && Math.abs(f - 1) >= 0.15) {
     const min = round5(item.durationMin * f);
-    if (min !== item.durationMin) return { min, note: `padded to ${formatDuration(min)}, you tend to run ${f > 1 ? 'over' : 'under'}` };
+    if (min !== item.durationMin) return { min, note: f > 1 ? t('padded to {d}, you tend to run over', { d: formatDuration(min) }) : t('shortened to {d}, you tend to finish early', { d: formatDuration(min) }) };
   }
   return null;
 }
@@ -73,11 +74,11 @@ export function insightLines(history: Completion[], areas: Area[]): string[] {
     // Best two-hour window.
     let best = 0, at = 0;
     for (let h = 0; h < 23; h++) if (w[h] + w[h + 1] > best) [best, at] = [w[h] + w[h + 1], h];
-    lines.push(`You get the most done between ${String(at).padStart(2, '0')}:00 and ${String(at + 2).padStart(2, '0')}:00.`);
+    lines.push(t('You get the most done between {from} and {to}.', { from: `${String(at).padStart(2, '0')}:00`, to: `${String(at + 2).padStart(2, '0')}:00` }));
   }
   for (const a of areas) {
     const f = areaFactor(history, a.id);
-    if (f && Math.abs(f - 1) >= 0.15) lines.push(`${a.name} takes you ${f > 1 ? `${f.toFixed(1)}× longer` : `${Math.round((1 - f) * 100)}% less time`} than planned.`);
+    if (f && Math.abs(f - 1) >= 0.15) lines.push(f > 1 ? t('{area} takes you {x}× longer than planned.', { area: a.name, x: f.toFixed(1) }) : t('{area} takes you {p}% less time than planned.', { area: a.name, p: Math.round((1 - f) * 100) }));
   }
   return lines;
 }

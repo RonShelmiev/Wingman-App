@@ -37,6 +37,10 @@ Quick add also gained an **Alarm** option under "Notify me by".
 
 Navigation: bottom bar — Today · Week · (+) · Reminders · Settings. Links between artboards work in the canvas's Play mode.
 
+## Dark mode
+
+All colors are theme tokens on `:root` with a dark set (deep navy `#0E1120` ground, `#181C2C` cards, light text). **Settings → Appearance: Auto / Light / Dark** (Auto follows the phone). The alarm screen is dark in both.
+
 ## Notifications approach (proposed)
 
 - **Push notifications** are the primary channel (Web Push for a PWA, or native push if we go native).

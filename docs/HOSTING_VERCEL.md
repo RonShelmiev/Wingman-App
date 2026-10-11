@@ -125,6 +125,15 @@ Android/Chrome: open the link → menu → **Install app**, then do steps 4–5.
 
 ---
 
+## Step 9 (optional) — Sync your phone and computer
+
+No extra setup needed; sync uses the same database.
+1. On your iPhone: **Settings → Sync & backup → Turn on sync**.
+2. Tap **Share link** and send it to yourself (AirDrop, Messages, email).
+3. Open the link on your computer and confirm. Both now share the same data, end-to-end encrypted.
+
+Also tap **Download backup** once in a while and keep the file in iCloud Drive: it works even without the server.
+
 ## Troubleshooting
 
 | Problem | Fix |
@@ -134,6 +143,7 @@ Android/Chrome: open the link → menu → **Install app**, then do steps 4–5.
 | No notifications on iPhone | Open Wingman from the Home Screen icon, not Safari. Check iPhone **Settings → Notifications → Wingman** is allowed and Focus mode isn't hiding it. |
 | Notifications arrive a minute or two late | Normal: the ticker runs once a minute, and phones may delay delivery a little to save battery. |
 | cron-job.org shows 401 | The header must be exactly `Authorization: Bearer <CRON_SECRET>`. |
+| Sync says it couldn't unlock | The code was typed wrong. Use Share link instead, or check the code on the first device. |
 | Emails don't arrive | Check `email: true` at `/api/config`, turn on Email in Wingman Settings with your Resend sign-up address, and check spam. |
 
 ## How it works (short version)

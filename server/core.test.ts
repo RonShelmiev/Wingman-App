@@ -75,3 +75,18 @@ describe('processDue', () => {
     expect((await processDue(store, fakeSenders().s, T + 1000)).due).toBe(0);
   });
 });
+
+describe('vault', () => {
+  const ID = 'a'.repeat(64);
+  it('saves with compare-and-set versions', async () => {
+    const { handleVaultGet, handleVaultPut } = await import('./core');
+    const store = new MemoryStore();
+    expect(await handleVaultGet(store, ID)).toBeNull();
+    expect(await handleVaultPut(store, { id: ID, version: 0, blob: 'v1.a.b' })).toEqual({ ok: true, version: 1 });
+    const stale = await handleVaultPut(store, { id: ID, version: 0, blob: 'v1.c.d' });
+    expect(stale).toMatchObject({ ok: false, current: { version: 1, blob: 'v1.a.b' } });
+    expect(await handleVaultPut(store, { id: ID, version: 1, blob: 'v1.c.d' })).toEqual({ ok: true, version: 2 });
+    await expect(handleVaultPut(store, { id: 'short', version: 0, blob: 'v1.x' })).rejects.toThrow(BadRequest);
+    await expect(handleVaultPut(store, { id: ID, version: 2, blob: 'plain text' })).rejects.toThrow(BadRequest);
+  });
+});

@@ -9,8 +9,8 @@ const item = (over: Partial<Item>): Item => ({
 });
 
 const state = (items: Item[], settings: Partial<State['settings']> = {}): State => ({
-  items, areas: [], fired: {}, snoozes: {},
-  settings: { pushEnabled: true, emailEnabled: false, morningBrief: '07:30', eveningRecap: '21:00', quietStart: '22:00', quietEnd: '07:00', dayStart: '08:00', dayEnd: '21:00', bufferMin: 15, name: '', email: '', ...settings },
+  items, areas: [], fired: {}, snoozes: {}, history: [], timer: null, deleted: {}, settingsUpdatedAt: '1970-01-01T00:00:00.000Z', historyClearedAt: null, sync: null,
+  settings: { pushEnabled: true, emailEnabled: false, morningBrief: '07:30', eveningRecap: '21:00', quietStart: '22:00', quietEnd: '07:00', dayStart: '08:00', dayEnd: '21:00', bufferMin: 15, name: '', email: '', theme: 'system', ...settings },
 });
 
 const NOW = new Date(2026, 9, 11, 10, 0);

@@ -1,7 +1,9 @@
 import type { ReactNode } from 'react';
 import type { Area, Item } from '../lib/types';
 import { isDoneOn, isRepeating } from '../lib/schedule';
-import { formatDuration, weekdayName } from '../lib/dates';
+import { dayNum, formatDuration, monthShort, weekdayName } from '../lib/dates';
+
+const ordinal = (n: number) => n + (n % 10 === 1 && n !== 11 ? 'st' : n % 10 === 2 && n !== 12 ? 'nd' : n % 10 === 3 && n !== 13 ? 'rd' : 'th');
 import { DoneCheck, Icon } from './Icon';
 
 export function repeatLabel(item: Item): string | null {
@@ -9,6 +11,9 @@ export function repeatLabel(item: Item): string | null {
   if (r.type === 'daily') return 'Daily';
   if (r.type === 'weekly') return `Every ${weekdayName(r.weekday)}`;
   if (r.type === 'everyNDays') return `Every ${r.n} days`;
+  if (r.type === 'weekdays') return 'Weekdays';
+  if (r.type === 'monthly' && item.date) return `Monthly on the ${ordinal(Number(item.date.slice(8, 10)))}`;
+  if (r.type === 'yearly' && item.date) return `Every year on ${monthShort(item.date)} ${dayNum(item.date)}`;
   return null;
 }
 
@@ -46,7 +51,7 @@ export function ItemRow({ item, date, area, meta, current, danger, onToggle, onO
   const parts = meta ?? [area?.name, item.kind !== 'reminder' ? formatDuration(item.durationMin) : null, repeatLabel(item)].filter(Boolean).join(' · ');
   return (
     <div className={`item${current ? ' current' : ''}${done && !isRepeating(item) ? ' faded' : ''}`}>
-      <span className="bar" style={{ background: area?.color ?? '#9AA0B2' }} aria-hidden="true" />
+      <span className="bar" style={{ background: area?.color ?? 'var(--ring-idle)' }} aria-hidden="true" />
       <button className="body" onClick={onOpen} aria-label={`Edit ${item.title}`}>
         <span className={`name${done ? ' done' : ''}`}>{item.title}</span>
         {parts && <span className="sub">{parts}</span>}

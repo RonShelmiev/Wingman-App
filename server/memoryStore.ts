@@ -1,4 +1,4 @@
-import type { Device, Store } from './core.js';
+import type { Device, Store, Vault } from './core.js';
 import type { ScheduledReminder } from './types.js';
 
 /** In-memory store for tests and local development. */
@@ -6,6 +6,16 @@ export class MemoryStore implements Store {
   devices = new Map<string, Device>();
   reminders = new Map<string, Map<string, ScheduledReminder>>();
   scheduled = new Map<string, Set<string>>();
+  vaults = new Map<string, Vault>();
+
+  async getVault(id: string) { return this.vaults.get(id) ?? null; }
+  async putVault(id: string, expected: number, blob: string) {
+    const cur = this.vaults.get(id) ?? null;
+    if ((cur?.version ?? 0) !== expected) return { ok: false as const, current: cur };
+    const version = expected + 1;
+    this.vaults.set(id, { version, blob, updatedAt: Date.now() });
+    return { ok: true as const, version };
+  }
 
   private rem(id: string) {
     if (!this.reminders.has(id)) this.reminders.set(id, new Map());

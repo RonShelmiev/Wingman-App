@@ -14,7 +14,23 @@ export function occursOn(item: Item, date: string): boolean {
       return parseDate(date).getDay() === r.weekday;
     case 'everyNDays':
       return daysBetween(item.date, date) % Math.max(1, r.n) === 0;
+    case 'weekdays': {
+      const dow = parseDate(date).getDay();
+      return dow >= 1 && dow <= 5;
+    }
+    case 'monthly':
+      return sameDayOfMonth(item.date, date);
+    case 'yearly':
+      return item.date.slice(5, 7) === date.slice(5, 7) && sameDayOfMonth(item.date, date);
   }
+}
+
+/** Day-of-month match, where e.g. the 31st falls on the last day of shorter months (Feb 29 → Feb 28). */
+function sameDayOfMonth(anchor: string, date: string): boolean {
+  const want = Number(anchor.slice(8, 10));
+  const d = parseDate(date);
+  const lastDay = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+  return d.getDate() === Math.min(want, lastDay);
 }
 
 export const isRepeating = (item: Item) => item.repeat.type !== 'none';
@@ -46,7 +62,7 @@ export function overdueItems(items: Item[], today: string): Item[] {
 export function nextOccurrence(item: Item, from: string): string | null {
   if (!item.date) return null;
   let d = from < item.date ? item.date : from;
-  for (let i = 0; i < 366; i++, d = addDays(d, 1)) if (occursOn(item, d)) return d;
+  for (let i = 0; i < 367; i++, d = addDays(d, 1)) if (occursOn(item, d)) return d;
   return null;
 }
 

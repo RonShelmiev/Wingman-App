@@ -2,6 +2,8 @@ import { useMemo, useState } from 'react';
 import type { Channel, Item, Kind, Repeat } from '../lib/types';
 import { actions, useStore } from '../lib/store';
 import { parseQuick } from '../lib/parse';
+import { durationForTitle } from '../lib/insights';
+import { isDoneOn } from '../lib/schedule';
 import { parseDate } from '../lib/dates';
 import { Sheet } from '../components/Sheet';
 import { Icon } from '../components/Icon';
@@ -12,7 +14,7 @@ interface Props {
   onClose: () => void;
 }
 
-type RepeatKey = 'none' | 'daily' | 'weekly' | 'every2' | 'every3';
+type RepeatKey = 'none' | 'daily' | 'weekdays' | 'weekly' | 'every2' | 'every3' | 'monthly' | 'yearly';
 const REMIND_OPTIONS: [string, number | null][] = [['No reminder', null], ['At the time', 0], ['5 min before', 5], ['10 min before', 10], ['15 min before', 15], ['30 min before', 30], ['1 hour before', 60], ['2 hours before', 120], ['1 day before', 1440]];
 const DURATIONS = [15, 30, 45, 60, 90, 120, 180, 240];
 const CHANNELS: [Channel, string][] = [['push', 'Push'], ['email', 'Email'], ['alarm', 'Alarm'], ['silent', 'Silent']];
@@ -26,12 +28,18 @@ function toRepeat(k: RepeatKey, date: string | null): Repeat {
     case 'weekly': return { type: 'weekly', weekday: parseDate(date!).getDay() };
     case 'every2': return { type: 'everyNDays', n: 2 };
     case 'every3': return { type: 'everyNDays', n: 3 };
+    case 'weekdays': return { type: 'weekdays' };
+    case 'monthly': return { type: 'monthly' };
+    case 'yearly': return { type: 'yearly' };
     default: return { type: 'none' };
   }
 }
 
 export function QuickAdd({ editing, today, onClose }: Props) {
   const areas = useStore((s) => s.areas);
+  const history = useStore((s) => s.history);
+  const timer = useStore((s) => s.timer);
+  const [learnedHint, setLearnedHint] = useState<string | null>(null);
   const [text, setText] = useState('');
   const [touched, setTouched] = useState<Set<string>>(new Set());
   const [f, setF] = useState(() => ({
@@ -61,7 +69,9 @@ export function QuickAdd({ editing, today, onClose }: Props) {
       maybe('kind', p.kind);
       maybe('date', p.date ?? today);
       maybe('start', p.start ?? '');
-      maybe('durationMin', p.durationMin ?? 30);
+      const learned = p.durationMin === null ? durationForTitle(history, p.title) : null;
+      setLearnedHint(learned && !touched.has('durationMin') ? `You usually need ${learned < 60 ? `${learned} min` : `${learned / 60} h`} for this` : null);
+      maybe('durationMin', p.durationMin ?? learned ?? 30);
       maybe('remindOffsetMin', p.remindOffsetMin ?? (p.kind === 'reminder' ? 0 : null));
       maybe('channel', p.channel ?? 'push');
       maybe('repeat', repeatKey(p.repeat));
@@ -71,6 +81,8 @@ export function QuickAdd({ editing, today, onClose }: Props) {
   };
 
   const needsTime = f.channel === 'alarm' && !f.start;
+  // Timing a repeating item counts for today's occurrence.
+  const focusDate = editing && editing.repeat.type === 'none' && editing.date ? editing.date : today;
   const canSave = f.title.trim().length > 0 && !needsTime;
 
   const save = () => {
@@ -134,8 +146,9 @@ export function QuickAdd({ editing, today, onClose }: Props) {
           <div className="field">
             <label htmlFor="qa-dur">How long</label>
             <select id="qa-dur" className="input" value={f.durationMin} onChange={(e) => set('durationMin', Number(e.target.value))}>
-              {[...new Set([...DURATIONS, f.durationMin])].sort((a, b) => a - b).map((d) => <option key={d} value={d}>{d < 60 ? `${d} min` : `${d / 60} h`}</option>)}
+              {[...new Set([...DURATIONS, f.durationMin])].sort((a, b) => a - b).map((d) => <option key={d} value={d}>{d < 60 ? `${d} min` : `${Math.round((d / 60) * 100) / 100} h`}</option>)}
             </select>
+            {learnedHint && <span style={{ fontSize: 12, color: 'var(--muted-2)' }}>{learnedHint}</span>}
           </div>
         ) : <span />}
         <div className="field">
@@ -143,9 +156,12 @@ export function QuickAdd({ editing, today, onClose }: Props) {
           <select id="qa-rep" className="input" value={f.repeat} onChange={(e) => set('repeat', e.target.value as RepeatKey)}>
             <option value="none">Never</option>
             <option value="daily">Every day</option>
+            <option value="weekdays">Weekdays (Mon–Fri)</option>
             <option value="weekly">Every week</option>
             <option value="every2">Every 2 days</option>
             <option value="every3">Every 3 days</option>
+            <option value="monthly">Every month</option>
+            <option value="yearly">Every year</option>
           </select>
         </div>
       </div>
@@ -184,6 +200,12 @@ export function QuickAdd({ editing, today, onClose }: Props) {
           ))}
         </div>
       </div>
+
+      {editing && editing.kind !== 'reminder' && !isDoneOn(editing, focusDate) && timer?.itemId !== editing.id && (
+        <button className="btn" onClick={() => { actions.startTimer(editing, focusDate); onClose(); }}>
+          Start focus timer
+        </button>
+      )}
 
       <div className="btn-row">
         {editing ? (

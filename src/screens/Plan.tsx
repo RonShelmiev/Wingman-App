@@ -4,6 +4,7 @@ import { actions, useStore } from '../lib/store';
 import { isDoneOn, itemsOn, overdueItems } from '../lib/schedule';
 import { addDays, formatDuration } from '../lib/dates';
 import { planDay, type Suggestion } from '../lib/planner';
+import { learnedDuration, preferenceFor } from '../lib/insights';
 import { Sheet } from '../components/Sheet';
 import { Icon } from '../components/Icon';
 
@@ -11,6 +12,7 @@ export function Plan({ today, now, onClose }: { today: string; now: Date; onClos
   const items = useStore((s) => s.items);
   const areas = useStore((s) => s.areas);
   const settings = useStore((s) => s.settings);
+  const history = useStore((s) => s.history);
   const [which, setWhich] = useState<'today' | 'tomorrow'>('today');
   const day = which === 'today' ? today : addDays(today, 1);
 
@@ -26,9 +28,11 @@ export function Plan({ today, now, onClose }: { today: string; now: Date; onClos
       bufferMin: settings.bufferMin,
       notBeforeMin: which === 'today' ? now.getHours() * 60 + now.getMinutes() + 5 : 0,
       overdueIds: new Set(overdue.map((i) => i.id)),
+      estimate: (i) => learnedDuration(history, i),
+      preference: preferenceFor(history),
     });
     return { fixed, ...res, byId: new Map(toPlace.map((i) => [i.id, i])) };
-  }, [items, day, today, which, settings, now]);
+  }, [items, day, today, which, settings, now, history]);
 
   const [rejected, setRejected] = useState<Set<string>>(new Set());
   const accepted = suggestions.filter((s) => !rejected.has(s.itemId));
@@ -40,7 +44,7 @@ export function Plan({ today, now, onClose }: { today: string; now: Date; onClos
   ].sort((a, b) => a.t.localeCompare(b.t));
 
   const apply = () => {
-    for (const s of accepted) actions.updateItem(s.itemId, { date: day, start: s.start });
+    for (const s of accepted) actions.updateItem(s.itemId, { date: day, start: s.start, durationMin: s.durationMin });
     onClose();
   };
 
@@ -75,7 +79,7 @@ export function Plan({ today, now, onClose }: { today: string; now: Date; onClos
               <div className="suggested" style={{ opacity: on ? 1 : 0.55 }}>
                 <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
                   <span className="name">{i.title}</span>
-                  <span className="sub">{areaOf(i)?.name} · {formatDuration(i.durationMin)} · {r.s!.reason}</span>
+                  <span className="sub">{areaOf(i)?.name} · {formatDuration(r.s!.durationMin)} · {r.s!.reason}</span>
                 </div>
                 <button className="accept" aria-pressed={on} aria-label={`${on ? 'Skip' : 'Keep'}: ${i.title} at ${r.t}`}
                   onClick={() => setRejected((s) => { const n = new Set(s); if (on) n.add(i.id); else n.delete(i.id); return n; })}>

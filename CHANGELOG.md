@@ -2,6 +2,31 @@
 
 Every push is documented here: what changed and why. Newest first.
 
+## 2026-10-11 — Main-planner features: yearly repeats, sync & backup, smarter planning, dark mode
+
+**Repeats**
+- New: **every year** (birthdays, anniversaries), **every month**, **weekdays (Mon–Fri)**. Feb 29 birthdays fall on Feb 28 in other years; "the 31st" falls on the last day of shorter months.
+- Quick add understands "Mom's birthday Oct 20" (yearly, Family, heads-up at 9:00 on the day), "Pay rent every month on the 1st", "Standup weekdays at 9:30", "every year".
+- Reminders gains a **Later** group, so a birthday months away is still listed.
+
+**Backup & sync (#3)**
+- **Download backup / Restore** in Settings (restore combines with what's there; works without the server).
+- **Sync between devices**, end-to-end encrypted: Turn on sync → Share link (or type the code) on the other device. Newest change per item wins, deletions carry over, theme and push stay per device. Server route `api/vault` with compare-and-set versions.
+- `npm run dev` now serves the API with in-memory storage, so sync can be tried locally.
+
+**Smarter planning (#5)**
+- **Focus timer**: open a task → Start focus timer → Done. Wingman records how long it really took.
+- Quick add suggests your usual duration for a task it has seen before; Plan with Wingman uses learned durations, pads life areas that usually run over, and places tasks in the hours you usually get things done (overdue still goes first).
+- Settings → **What Wingman has learned** (best hours, areas that run over) with Reset learning.
+
+**Dark mode (#6)**
+- Full dark theme; **Settings → Appearance: Auto / Light / Dark**. No flash of the wrong theme on launch.
+
+**Verified**
+- `npm test` 43/43 (new: repeats incl. leap years, parser cases, merge rules, encryption, backup files, vault versions, learning, planner preferences); typecheck and build clean.
+- Browser run with two separate devices: device A turned on sync, device B opened the share link and received all data; a birthday added on B appeared on A; a deletion on A disappeared on B; focus timer started and finished; dark mode via phone setting and via Settings. No app errors (one expected 404: the first sync finding no existing copy).
+- Not verified here: the Redis compare-and-set script on real Upstash (runs after deployment).
+
 ## 2026-10-11 — Notifications when the app is closed (Phase 3) + Vercel guide
 
 **Added**

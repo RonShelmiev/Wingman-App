@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from 'react';
-import type { Area, Item, Settings } from './types';
+import type { Area, Completion, FocusTimer, Item, Settings } from './types';
+import { HISTORY_LIMIT } from './insights';
 import { addDays, toDateStr } from './dates';
 import { isRepeating } from './schedule';
 
@@ -11,6 +12,25 @@ export interface State {
   fired: Record<string, true>;
   /** Occurrence key -> ISO time the snoozed reminder fires again. */
   snoozes: Record<string, string>;
+  /** Finished tasks, for learning (newest last). */
+  history: Completion[];
+  /** Running focus timer, if any (this device only). */
+  timer: FocusTimer | null;
+  /** id -> ISO time it was deleted, so deletions carry over to other devices. */
+  deleted: Record<string, string>;
+  settingsUpdatedAt: string;
+  /** "Reset learning" time; older history from other devices is ignored. */
+  historyClearedAt: string | null;
+  /** Sync link for this device (never synced itself). */
+  sync: SyncLink | null;
+}
+
+export interface SyncLink {
+  code: string;
+  version: number;
+  lastSync: number | null;
+  /** Fingerprint of what was last uploaded, to skip no-op syncs. */
+  lastHash: string | null;
 }
 
 export const DEFAULT_AREAS: Area[] = [
@@ -37,9 +57,11 @@ const DEFAULT_SETTINGS: Settings = {
   bufferMin: 15,
   name: '',
   email: '',
+  theme: 'system',
 };
 
 const KEY = 'wingman:v1';
+export const EPOCH = '1970-01-01T00:00:00.000Z';
 
 function load(): State {
   try {
@@ -52,18 +74,46 @@ function load(): State {
         settings: { ...DEFAULT_SETTINGS, ...s.settings },
         fired: s.fired ?? {},
         snoozes: s.snoozes ?? {},
+        history: s.history ?? [],
+        timer: s.timer ?? null,
+        deleted: s.deleted ?? {},
+        settingsUpdatedAt: s.settingsUpdatedAt ?? EPOCH,
+        historyClearedAt: s.historyClearedAt ?? null,
+        sync: s.sync ?? null,
       };
     }
   } catch {
     // Storage unavailable or corrupt: start fresh.
   }
-  return { items: [], areas: DEFAULT_AREAS, settings: DEFAULT_SETTINGS, fired: {}, snoozes: {} };
+  return { items: [], areas: DEFAULT_AREAS, settings: DEFAULT_SETTINGS, fired: {}, snoozes: {}, history: [], timer: null, deleted: {}, settingsUpdatedAt: EPOCH, historyClearedAt: null, sync: null };
 }
 
 let state: State = load();
 const listeners = new Set<() => void>();
 
+/** Commit a change made on this device: stamps what changed so other devices can merge it. */
 function set(next: State) {
+  const now = new Date().toISOString();
+  const prevItems = new Map(state.items.map((i) => [i.id, i]));
+  const prevAreas = new Map(state.areas.map((a) => [a.id, a]));
+  let deleted = next.deleted;
+  const stamp = <T extends { id: string; updatedAt?: string }>(list: T[], prev: Map<string, T>): T[] =>
+    list.map((x) => (prev.get(x.id) === x ? x : { ...x, updatedAt: now }));
+  const items = next.items === state.items ? next.items : stamp(next.items, prevItems);
+  const areas = next.areas === state.areas ? next.areas : stamp(next.areas, prevAreas);
+  const keep = new Set([...items.map((i) => i.id), ...areas.map((a) => a.id)]);
+  for (const id of [...prevItems.keys(), ...prevAreas.keys()]) if (!keep.has(id)) deleted = { ...deleted, [id]: now };
+  commit({
+    ...next,
+    items,
+    areas,
+    deleted,
+    settingsUpdatedAt: next.settings === state.settings ? next.settingsUpdatedAt : now,
+  });
+}
+
+/** Write state as-is (used when applying a merge from another device). */
+export function commit(next: State) {
   state = next;
   try {
     localStorage.setItem(KEY, JSON.stringify(state));
@@ -110,11 +160,34 @@ export const actions = {
   deleteItem(id: string) {
     set({ ...state, items: state.items.filter((i) => i.id !== id), fired: dropKeys(state.fired, id), snoozes: dropKeys(state.snoozes, id) });
   },
-  toggleDone(item: Item, date: string) {
+  toggleDone(item: Item, date: string, actualMin: number | null = null) {
+    const wasDone = isRepeating(item) ? item.doneDates.includes(date) : item.done;
     const patch: Partial<Item> = isRepeating(item)
-      ? { doneDates: item.doneDates.includes(date) ? item.doneDates.filter((d) => d !== date) : [...item.doneDates, date] }
+      ? { doneDates: wasDone ? item.doneDates.filter((d) => d !== date) : [...item.doneDates, date] }
       : { done: !item.done };
-    set({ ...state, items: state.items.map((i) => (i.id === item.id ? { ...i, ...patch } : i)) });
+    const now = new Date();
+    // Learn from finished tasks; un-ticking forgets that completion.
+    const history = wasDone
+      ? state.history.filter((c) => !(c.itemId === item.id && c.date === date))
+      : [...state.history, { id: newId(), itemId: item.id, date, title: item.title, areaId: item.areaId, at: now.toISOString(), hour: now.getHours(), plannedMin: item.durationMin, actualMin }].slice(-HISTORY_LIMIT);
+    const timer = state.timer?.itemId === item.id ? null : state.timer;
+    set({ ...state, items: state.items.map((i) => (i.id === item.id ? { ...i, ...patch } : i)), history, timer });
+  },
+  startTimer(item: Item, date: string) {
+    set({ ...state, timer: { itemId: item.id, date, startedAt: new Date().toISOString() } });
+  },
+  /** Stop the focus timer; with `done`, tick the task off and remember how long it really took. */
+  stopTimer(done: boolean) {
+    const t = state.timer;
+    if (!t) return;
+    const item = state.items.find((i) => i.id === t.itemId);
+    if (!done || !item) return set({ ...state, timer: null });
+    const actual = Math.max(1, Math.round((Date.now() - new Date(t.startedAt).getTime()) / 60_000));
+    if (isRepeating(item) ? item.doneDates.includes(t.date) : item.done) return set({ ...state, timer: null });
+    actions.toggleDone(item, t.date, actual);
+  },
+  resetLearning() {
+    set({ ...state, history: [], historyClearedAt: new Date().toISOString() });
   },
   addArea(name: string, color: string) {
     set({ ...state, areas: [...state.areas, { id: newId(), name, color }] });

@@ -63,17 +63,21 @@ export function buildSchedule(s: State, now: Date, opts: { email: boolean }): Sc
 export interface ServerStatus {
   /** null = still checking */
   available: boolean | null;
+  /** Server has storage (needed for sync), even if push keys are missing. */
+  storage: boolean;
   email: boolean;
   subscribed: boolean;
   lastSync: number | null;
   error: string | null;
 }
-let status: ServerStatus = { available: null, email: false, subscribed: false, lastSync: null, error: null };
+let status: ServerStatus = { available: null, storage: false, email: false, subscribed: false, lastSync: null, error: null };
 const statusListeners = new Set<() => void>();
 const setStatus = (p: Partial<ServerStatus>) => {
   status = { ...status, ...p };
   statusListeners.forEach((l) => l());
 };
+export const getServerStatus = () => status;
+export const onServerStatus = (l: () => void) => (statusListeners.add(l), () => statusListeners.delete(l));
 export const useServerStatus = () =>
   useSyncExternalStore((l) => (statusListeners.add(l), () => statusListeners.delete(l)), () => status);
 
@@ -157,7 +161,7 @@ export async function startBackgroundSync() {
     const res = await fetch('/api/config');
     const cfg = res.ok && res.headers.get('content-type')?.includes('json') ? ((await res.json()) as { publicKey: string | null; email: boolean; storage: boolean }) : null;
     publicKey = cfg?.publicKey ?? null;
-    setStatus({ available: !!(cfg?.publicKey && cfg.storage), email: !!cfg?.email, error: cfg && !cfg.storage ? 'Server storage is not set up yet' : null });
+    setStatus({ available: !!(cfg?.publicKey && cfg.storage), storage: !!cfg?.storage, email: !!cfg?.email, error: cfg && !cfg.storage ? 'Server storage is not set up yet' : null });
   } catch {
     setStatus({ available: false });
   }

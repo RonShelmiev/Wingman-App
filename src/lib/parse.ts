@@ -76,7 +76,12 @@ export function parseQuick(input: string, now: Date): Parsed {
   });
 
   // Repeat
+  take(/\b(?:on |every )?(weekdays|every weekday|work ?days)\b/i, () => (out.repeat = { type: 'weekdays' }));
   take(/\b(every ?day|daily)\b/i, () => (out.repeat = { type: 'daily' }));
+  take(/\b(every month|monthly)\b/i, () => (out.repeat = { type: 'monthly' }));
+  take(/\b(every year|yearly|annually)\b/i, () => (out.repeat = { type: 'yearly' }));
+  // Birthdays and anniversaries come back every year; the word stays in the title.
+  if (out.repeat.type === 'none' && /\b(birthday|bday|anniversary)\b/i.test(input)) out.repeat = { type: 'yearly' };
   take(/\bevery (\d+) days\b/i, (m) => (out.repeat = { type: 'everyNDays', n: parseInt(m[1], 10) }));
   take(new RegExp(`\\bevery ${WD}s?\\b`, 'i'), (m) => {
     const wd = weekdayIndex(m[1]);
@@ -100,6 +105,15 @@ export function parseQuick(input: string, now: Date): Parsed {
   take(new RegExp(`\\b(?:on )?${WD}\\b`, 'i'), (m) => (out.date = nextWeekday(today, weekdayIndex(m[1]), true)));
   take(new RegExp(`\\b(?:on )?${MO} (\\d{1,2})(?:st|nd|rd|th)?\\b`, 'i'), (m) => (out.date = monthDay(now, monthIndex(m[1]), parseInt(m[2], 10))));
   take(new RegExp(`\\b(?:on )?(\\d{1,2})(?:st|nd|rd|th)? (?:of )?${MO}\\b`, 'i'), (m) => (out.date = monthDay(now, monthIndex(m[2]), parseInt(m[1], 10))));
+
+  // "on the 1st" (no month): the next date with that day of the month
+  take(/\b(?:on )?the (\d{1,2})(?:st|nd|rd|th)\b/i, (m) => {
+    const day = parseInt(m[1], 10);
+    if (day < 1 || day > 31) return;
+    let d = today;
+    for (let i = 0; i < 62 && Number(d.slice(8, 10)) !== day; i++) d = addDays(d, 1);
+    out.date = d;
+  });
 
   // Times: "at 4:30pm", "4pm", "16:30", "at 9", "noon"
   take(/\b(?:at )?(\d{1,2})(?::(\d{2}))? ?(am|pm|a\.m\.|p\.m\.)/i, (m) => {
@@ -133,9 +147,13 @@ export function parseQuick(input: string, now: Date): Parsed {
   }
   if (out.channel === 'alarm') out.remindOffsetMin ??= 0;
 
-  const eventy = /\b(meeting|lunch|dinner|breakfast|appointment|dentist|doctor|party|flight|class|interview|date)\b/i.test(input);
+  const special = /\b(birthday|bday|anniversary)\b/i.test(input);
+  // Get a heads-up on the day (at 9:00 if there's no time).
+  if (special) out.remindOffsetMin ??= 0;
+  const eventy = special || /\b(meeting|lunch|dinner|breakfast|appointment|dentist|doctor|party|flight|class|interview|date)\b/i.test(input);
   out.kind =
     out.channel === 'alarm' ? 'reminder'
+    : special ? 'event'
     : out.start && (out.durationMin !== null || eventy) ? 'event'
     : out.start || out.remindOffsetMin !== null ? 'reminder'
     : 'task';

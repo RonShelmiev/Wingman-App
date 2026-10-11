@@ -13,6 +13,9 @@ React 19 + TypeScript + Vite, built as a PWA. Your data lives in the browser (`l
 | `planner.ts` | Plan with Wingman: fits untimed tasks into free gaps between fixed items, inside your day window, with breathing room. Overdue first, then longest first; earliest gap that fits. |
 | `store.ts` | App state + persistence + actions; React hook `useStore()`. |
 | `push.ts` | Builds the 14-day reminder schedule, keeps it synced to the server (debounced on every change, every 15 min, when back online), manages the push subscription, and acks reminders the app already showed. |
+| `insights.ts` | Learning: durations from focus-timer sessions (per title, then per life area) and productive hours from when you tick things off. Feeds the planner and the Settings "learned" card. |
+| `sync.ts` | Device sync rules (merge: newest change per item wins, deletions carry over, device-only settings stay local), sync codes, AES-GCM encryption, backup file format. |
+| `syncEngine.ts` | Runs sync: download → decrypt → merge → encrypt → upload with version check; retries on conflicts; triggered on change, every 2 min, on focus and when back online. |
 | `notify.ts` | Service-worker registration, system notifications, alarm sound (Web Audio, no sound file) and vibration. |
 
 ## Reminder engine (`App.tsx`)
@@ -41,11 +44,25 @@ cron-job.org ──every minute──▶ /api/tick ─────────�
 | `GET/POST /api/tick` | Send everything due. Needs `Authorization: Bearer $CRON_SECRET`. Drops reminders >15 min late. |
 | `POST /api/snooze` | From the notification's "Snooze" button: re-schedule in 10 min. |
 | `POST /api/ack` | The open app already showed it, so don't push it. |
+| `GET/PUT /api/vault` | Encrypted sync copy. `id` = SHA-256 of the sync code; `PUT` only succeeds if the version matches (compare-and-set via a Redis Lua script), otherwise 409 with the current copy. |
 
 - Devices are identified by a random 24-byte ID generated on the phone (works as a bearer secret); no accounts.
 - Logic is in `server/core.ts` behind a `Store` interface (`RedisStore` in production, `MemoryStore` in tests).
 - Dead subscriptions (HTTP 404/410 from the push service) are cleared automatically; devices unseen for 60 days expire.
 - The app ignores reminders more than 10 minutes old when it reopens (the server already delivered them), so alarms never ring late.
+
+## Sync & backup
+
+- **Sync code**: 32 characters (160 random bits), created on the device. The server stores only `SHA-256("wingman-vault:"+code)` as the id and an AES-GCM blob encrypted with a key derived from the code. It cannot read your data. Anyone with the code can, so it's shown masked.
+- **Linking**: "Share link" opens `https://…/#sync=CODE` on the other device (the part after `#` is never sent to the server), or type the code.
+- **Merging**: every item/area carries `updatedAt` (stamped centrally in the store); deletions leave a tombstone for 60 days; settings sync by recency except `pushEnabled` and `theme` (per device); learning history and reminder bookkeeping are unioned.
+- **Backup file**: Settings → Download backup / Restore (restore merges, never wipes). Works without the server.
+
+## Smarter planning
+
+- Ticking a task off records a completion (time of day, planned minutes). The focus timer (edit sheet → Start focus timer) also records actual minutes.
+- After 2 timed sessions of the same task, Quick add and the planner use your real duration; after 3 in a life area, tasks there are padded if you usually run over (0.6–2×).
+- After 8 completions, Plan with Wingman prefers the hours you usually get things done (per life area once it has 5+), but overdue tasks still go first.
 
 ## Known limits (honest)
 
@@ -53,7 +70,8 @@ cron-job.org ──every minute──▶ /api/tick ─────────�
 - With the app closed, an alarm arrives as a persistent notification with the phone's notification sound, not a ringing full-screen alarm.
 - The server schedules 14 days ahead; open the app at least once every two weeks.
 - A web alarm can't override the phone's silent switch the way the built-in Clock app can.
-- Data is per device until sync arrives.
+- Sync merges whole items: if the same item is edited on two devices before they sync, the later edit wins.
+- The Redis compare-and-set script is tested only through the in-memory store here; it runs for real on Upstash after deployment.
 
 ## Tests
 

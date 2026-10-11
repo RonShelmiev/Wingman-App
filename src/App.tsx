@@ -25,7 +25,23 @@ export function App() {
   const [rings, setRings] = useState<Ring[]>([]);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const areas = useStore((s) => s.areas);
+  const theme = useStore((s) => s.settings.theme);
   const today = toDateStr(now);
+
+  // Appearance: "system" follows the phone; light/dark override it.
+  useEffect(() => {
+    const root = document.documentElement;
+    if (theme === 'system') delete root.dataset.theme;
+    else root.dataset.theme = theme;
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    const paint = () => {
+      const dark = theme === 'dark' || (theme === 'system' && mq.matches);
+      document.querySelector('meta[name="theme-color"]')?.setAttribute('content', dark ? '#0E1120' : '#F4F5F7');
+    };
+    paint();
+    mq.addEventListener('change', paint);
+    return () => mq.removeEventListener('change', paint);
+  }, [theme]);
 
   // Clock: tick every 5 seconds and whenever the app comes back to the foreground.
   useEffect(() => {

@@ -19,6 +19,32 @@ export interface Store {
   removeReminder(id: string, key: string): Promise<void>;
   /** Reminders with fireAt <= now, oldest first. */
   due(now: number, limit: number): Promise<{ deviceId: string; reminder: ScheduledReminder }[]>;
+  getVault(id: string): Promise<Vault | null>;
+  /** Save only if the stored version still equals `expected` (0 = doesn't exist yet). */
+  putVault(id: string, expected: number, blob: string): Promise<{ ok: true; version: number } | { ok: false; current: Vault | null }>;
+}
+
+/** An encrypted copy of one person's data. The server never sees the key. */
+export interface Vault {
+  version: number;
+  blob: string;
+  updatedAt: number;
+}
+
+export const VAULT_MAX = 2_000_000;
+const VAULT_ID = /^[0-9a-f]{64}$/;
+
+export async function handleVaultGet(store: Store, id: string) {
+  if (!VAULT_ID.test(id)) throw new BadRequest('bad id');
+  return store.getVault(id);
+}
+
+export async function handleVaultPut(store: Store, body: unknown) {
+  const b = body as { id?: unknown; version?: unknown; blob?: unknown } | null;
+  if (!b || typeof b.id !== 'string' || !VAULT_ID.test(b.id)) throw new BadRequest('bad id');
+  if (typeof b.version !== 'number' || !Number.isInteger(b.version) || b.version < 0) throw new BadRequest('bad version');
+  if (typeof b.blob !== 'string' || !b.blob.startsWith('v1.') || b.blob.length > VAULT_MAX) throw new BadRequest('bad blob');
+  return store.putVault(b.id, b.version, b.blob);
 }
 
 export interface Senders {

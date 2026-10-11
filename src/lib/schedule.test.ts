@@ -20,6 +20,16 @@ describe('occurrences', () => {
     expect(occursOn(item({ repeat: { type: 'everyNDays', n: 3 } }), '2026-10-14')).toBe(true);
     expect(occursOn(item({ repeat: { type: 'everyNDays', n: 3 } }), '2026-10-15')).toBe(false);
     expect(nextOccurrence(item({ repeat: { type: 'weekly', weekday: 3 } }), '2026-10-11')).toBe('2026-10-14');
+    expect(occursOn(item({ repeat: { type: 'weekdays' } }), '2026-10-12')).toBe(true); // Mon
+    expect(occursOn(item({ repeat: { type: 'weekdays' } }), '2026-10-17')).toBe(false); // Sat
+    expect(occursOn(item({ date: '2026-01-31', repeat: { type: 'monthly' } }), '2026-02-28')).toBe(true);
+    expect(occursOn(item({ date: '2026-01-31', repeat: { type: 'monthly' } }), '2026-03-31')).toBe(true);
+    expect(occursOn(item({ date: '2026-01-31', repeat: { type: 'monthly' } }), '2026-03-30')).toBe(false);
+    const bday = item({ date: '2024-02-29', repeat: { type: 'yearly' } });
+    expect(occursOn(bday, '2027-02-28')).toBe(true);
+    expect(occursOn(bday, '2028-02-29')).toBe(true);
+    expect(occursOn(bday, '2028-02-28')).toBe(false);
+    expect(nextOccurrence(item({ date: '2025-10-01', repeat: { type: 'yearly' } }), '2026-10-11')).toBe('2027-10-01');
   });
 
   it('tracks done per occurrence for repeating items', () => {
@@ -63,8 +73,8 @@ describe('planDay', () => {
     const { suggestions, unplaced } = planDay(fixed, tasks, { ...opts, notBeforeMin: 12 * 60 + 40, overdueIds: new Set(['bill']) });
     expect(unplaced).toEqual([]);
     expect(suggestions).toEqual([
-      { itemId: 'bill', start: '13:45', reason: 'overdue, so first' },
-      { itemId: 'read', start: '14:15', reason: 'next free slot' },
+      { itemId: 'bill', start: '13:45', durationMin: 15, reason: 'overdue, so first' },
+      { itemId: 'read', start: '14:15', durationMin: 45, reason: 'next free slot' },
     ]);
   });
   it('reports tasks that do not fit', () => {

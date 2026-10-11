@@ -1,5 +1,5 @@
 import { Redis } from '@upstash/redis';
-import type { Device, Store } from './core.js';
+import type { Device, Store, Vault } from './core.js';
 import type { ScheduledReminder } from './types.js';
 
 // Layout:
@@ -7,9 +7,32 @@ import type { ScheduledReminder } from './types.js';
 //   rem:<id>   hash  key -> JSON ScheduledReminder   (scheduled + "sent:" copies)
 //   due        sorted set  "<id>|<key>" scored by fireAt  (scheduled only)
 const DEVICE_TTL = 60 * 24 * 3600; // forget devices not seen for 60 days
+const VAULT_TTL = 400 * 24 * 3600; // keep synced data for a year after the last change
+
+// Compare-and-set in one step, so two devices saving at once can't overwrite each other.
+const PUT_VAULT = `
+local cur = redis.call('GET', KEYS[1])
+local version = 0
+if cur then version = cjson.decode(cur).version end
+if version ~= tonumber(ARGV[1]) then return {0, cur or ''} end
+local nextv = version + 1
+redis.call('SET', KEYS[1], cjson.encode({version = nextv, blob = ARGV[2], updatedAt = tonumber(ARGV[3])}), 'EX', tonumber(ARGV[4]))
+return {1, tostring(nextv)}
+`;
 
 export class RedisStore implements Store {
   constructor(private r: Redis) {}
+
+  async getVault(id: string) {
+    const v = await this.r.get<Vault | string>(`vault:${id}`);
+    return v ? (typeof v === 'string' ? (JSON.parse(v) as Vault) : v) : null;
+  }
+  async putVault(id: string, expected: number, blob: string) {
+    const [ok, val] = (await this.r.eval(PUT_VAULT, [`vault:${id}`], [String(expected), blob, String(Date.now()), String(VAULT_TTL)])) as [number, string | Vault];
+    if (ok === 1) return { ok: true as const, version: Number(val) };
+    const current = !val ? null : typeof val === 'string' ? (JSON.parse(val) as Vault) : val;
+    return { ok: false as const, current };
+  }
 
   async getDevice(id: string) { return (await this.r.get<Device>(`dev:${id}`)) ?? null; }
   async putDevice(id: string, d: Device) {

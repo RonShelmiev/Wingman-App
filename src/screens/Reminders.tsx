@@ -34,16 +34,20 @@ export function Reminders({ today, onEdit }: { today: string; onEdit: (i: Item) 
     const pool = filter === 'repeating' ? relevant.filter(isRepeating) : relevant;
     const overdue = filter === 'all' ? overdueItems(pool, today) : [];
     const todays = pool.filter((i) => occursOn(i, today));
-    const upcoming = pool
+    const ahead = pool
       .filter((i) => !occursOn(i, today))
       .map((i) => ({ i, d: nextOccurrence(i, addDays(today, 1)) }))
-      .filter((x): x is { i: Item; d: string } => !!x.d && x.d <= addDays(today, 30) && !(!isRepeating(x.i) && x.i.done))
+      .filter((x): x is { i: Item; d: string } => !!x.d && !(!isRepeating(x.i) && x.i.done))
       .sort((a, b) => (a.d + (a.i.start ?? '')).localeCompare(b.d + (b.i.start ?? '')));
+    const soon = addDays(today, 30);
+    const upcoming = ahead.filter((x) => x.d <= soon);
+    const later = ahead.filter((x) => x.d > soon);
     const someday = pool.filter((i) => !i.date && !i.done);
     groups = [
       { label: 'Overdue', danger: true, rows: overdue.map((i) => row(i, i.date, true)) },
       { label: 'Today', rows: todays.sort((a, b) => Number(isDoneOn(a, today)) - Number(isDoneOn(b, today))).map((i) => row(i, today)) },
       { label: 'Upcoming', rows: upcoming.map(({ i, d }) => row(i, d)) },
+      { label: 'Later', rows: later.map(({ i, d }) => row(i, d)) },
       { label: 'Someday', rows: someday.map((i) => row(i, null)) },
     ];
   }

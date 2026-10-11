@@ -55,7 +55,7 @@ export function Week({ today, onEdit }: { today: string; onEdit: (i: Item) => vo
           return (
             <button key={d} className={`day${d === today ? ' today' : ''}`} aria-pressed={d === sel} onClick={() => setSelected(d)}
               aria-label={`${dowLong(d)} ${dayNum(d)}, ${Math.round(load * 100)}% booked`}>
-              <span className="track"><span className="fill" style={{ height: Math.round(load * 72), background: load > 0.8 ? '#D24B1F' : '#2F55D4' }} /></span>
+              <span className="track"><span className="fill" style={{ height: Math.round(load * 72), background: load > 0.8 ? 'var(--accent)' : 'var(--blue-fill)' }} /></span>
               <span className="dow">{dowShort(d)}</span>
               <span className="num">{dayNum(d)}</span>
             </button>

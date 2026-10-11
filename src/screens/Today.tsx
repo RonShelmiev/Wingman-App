@@ -25,8 +25,8 @@ function Ring({ done, total }: { done: number; total: number }) {
   const frac = total ? done / total : 0;
   return (
     <svg width="76" height="76" viewBox="0 0 76 76" role="img" aria-label={`${done} of ${total} done`} style={{ flexShrink: 0 }}>
-      <circle cx="38" cy="38" r="31" fill="none" stroke="#2C3247" strokeWidth="9" />
-      {frac > 0 && <circle cx="38" cy="38" r="31" fill="none" stroke="#D24B1F" strokeWidth="9" strokeLinecap="round" strokeDasharray={`${frac * c} ${c}`} transform="rotate(-90 38 38)" />}
+      <circle cx="38" cy="38" r="31" fill="none" stroke="var(--hero-track)" strokeWidth="9" />
+      {frac > 0 && <circle cx="38" cy="38" r="31" fill="none" stroke="var(--accent)" strokeWidth="9" strokeLinecap="round" strokeDasharray={`${frac * c} ${c}`} transform="rotate(-90 38 38)" />}
       <text x="38" y="44" textAnchor="middle" fill="#fff" fontFamily="Bricolage Grotesque, sans-serif" fontSize="18" fontWeight="700">{done}/{total}</text>
     </svg>
   );
@@ -36,6 +36,8 @@ export function Today({ now, today, onEdit, onAdd, onPlan, onSettings }: Props) 
   const items = useStore((s) => s.items);
   const areas = useStore((s) => s.areas);
   const name = useStore((s) => s.settings.name);
+  const timer = useStore((s) => s.timer);
+  const timerItem = timer ? items.find((i) => i.id === timer.itemId) : undefined;
   const [perm, setPerm] = useState(notificationPermission());
   const areaOf = (i: Item) => areas.find((a) => a.id === i.areaId);
 
@@ -103,6 +105,18 @@ export function Today({ now, today, onEdit, onAdd, onPlan, onSettings }: Props) 
         <section style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <h2 className="group-label danger">Overdue</h2>
           <div className="list">{overdue.map((i) => row(i, { date: i.date!, danger: true }))}</div>
+        </section>
+      )}
+
+      {timer && timerItem && (
+        <section className="focus" aria-label="Focus timer">
+          <span className="focus-dot" aria-hidden="true" />
+          <div style={{ flexGrow: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <span className="focus-label">Focusing · {formatDuration(Math.max(0, Math.floor((now.getTime() - new Date(timer.startedAt).getTime()) / 60000)))}</span>
+            <span className="name" style={{ fontWeight: 700, overflowWrap: 'anywhere' }}>{timerItem.title}</span>
+          </div>
+          <button className="btn small" onClick={() => actions.stopTimer(false)}>Stop</button>
+          <button className="btn small primary" onClick={() => actions.stopTimer(true)}>Done</button>
         </section>
       )}
 

@@ -55,4 +55,11 @@ describe('parseQuick', () => {
     expect(parseQuick('Pay rent next friday', NOW).date).toBe('2026-10-16');
     expect(parseQuick('Pay rent friday', NOW).date).toBe('2026-10-16');
   });
+
+  it('repeats yearly for birthdays, monthly and on weekdays', () => {
+    expect(parseQuick("Mom's birthday Oct 20", NOW)).toMatchObject({ title: "Mom's birthday", date: '2026-10-20', repeat: { type: 'yearly' }, kind: 'event', remindOffsetMin: 0, areaGuess: 'family' });
+    expect(parseQuick('Pay rent every month on the 1st', NOW)).toMatchObject({ title: 'Pay rent', date: '2026-11-01', repeat: { type: 'monthly' } });
+    expect(parseQuick('Standup weekdays at 9:30', NOW)).toMatchObject({ title: 'Standup', start: '09:30', repeat: { type: 'weekdays' } });
+    expect(parseQuick('Renew car insurance every year', NOW).repeat).toEqual({ type: 'yearly' });
+  });
 });

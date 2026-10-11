@@ -16,7 +16,7 @@ export function getStore(): Store {
   return store;
 }
 
-export const storageConfigured = () => !!((env('KV_REST_API_URL') ?? env('UPSTASH_REDIS_REST_URL')) && (env('KV_REST_API_TOKEN') ?? env('UPSTASH_REDIS_REST_TOKEN')));
+export const storageConfigured = () => env('WINGMAN_DEV_MEMORY') === '1' || !!((env('KV_REST_API_URL') ?? env('UPSTASH_REDIS_REST_URL')) && (env('KV_REST_API_TOKEN') ?? env('UPSTASH_REDIS_REST_TOKEN')));
 export const vapidPublicKey = () => env('VAPID_PUBLIC_KEY') ?? null;
 export const emailConfigured = () => !!(env('RESEND_API_KEY') && env('EMAIL_FROM'));
 

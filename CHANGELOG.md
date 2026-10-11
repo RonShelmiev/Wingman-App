@@ -2,6 +2,15 @@
 
 Every push is documented here: what changed and why. Newest first.
 
+## 2026-10-11 — "Update available" bar
+
+**Added**
+- Each build has its own version id, also published as `/version.json` (never cached).
+- The installed app checks for a newer version when it opens, when you come back to it, when you're back online, and every 30 minutes. If there is one, a bar says "A new version of Wingman is ready" / "גרסה חדשה של Wingman מוכנה" with **Refresh**; one tap loads it. Your data isn't touched.
+
+**Verified**
+- Browser run on the production build: no bar normally; after publishing a different `version.json` and returning to the app, the bar appeared; Refresh reloaded and the data was still there. `npm test` 58/58, build clean.
+
 ## 2026-10-11 — Final touches + Hebrew
 
 **Must-haves (A)**

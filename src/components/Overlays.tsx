@@ -3,6 +3,7 @@ import { dismissUndo, undo, useUndo } from '../lib/undo';
 import { answer, useQuestion } from '../lib/ask';
 import { useCelebration } from '../lib/celebrate';
 import { t } from '../lib/i18n';
+import { applyUpdate, useUpdateAvailable } from '../lib/update';
 import { Sheet } from './Sheet';
 
 /** "Done: Gym · Undo" bar above the navigation. */
@@ -14,6 +15,20 @@ export function UndoBar() {
       <span style={{ flexGrow: 1, minWidth: 0, overflowWrap: 'anywhere' }}>{p.label}</span>
       <button className="undo-btn" onClick={undo}>{t('Undo')}</button>
       <button className="undo-x" aria-label={t('Dismiss')} onClick={dismissUndo}>×</button>
+    </div>
+  );
+}
+
+/** "A new version is ready" bar at the top. */
+export function UpdateBar() {
+  const ready = useUpdateAvailable();
+  const [hidden, setHidden] = useState(false);
+  if (!ready || hidden) return null;
+  return (
+    <div className="update-bar" role="status">
+      <span style={{ flexGrow: 1 }}>{t('A new version of Wingman is ready.')}</span>
+      <button className="undo-btn" onClick={applyUpdate}>{t('Refresh')}</button>
+      <button className="undo-x" aria-label={t('Later')} onClick={() => setHidden(true)}>×</button>
     </div>
   );
 }

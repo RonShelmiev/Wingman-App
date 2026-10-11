@@ -37,7 +37,21 @@ function localApi(): Plugin {
   };
 }
 
+// Every build gets an id; the app compares it with /version.json to spot a newer version.
+const BUILD_ID = Date.now().toString(36);
+
+function versionFile(): Plugin {
+  return {
+    name: 'wingman-version',
+    apply: 'build',
+    generateBundle() {
+      this.emitFile({ type: 'asset', fileName: 'version.json', source: JSON.stringify({ id: BUILD_ID }) });
+    },
+  };
+}
+
 export default defineConfig({
-  plugins: [react(), localApi()],
+  plugins: [react(), localApi(), versionFile()],
+  define: { __BUILD_ID__: JSON.stringify(BUILD_ID) },
   test: { environment: 'node' },
 });

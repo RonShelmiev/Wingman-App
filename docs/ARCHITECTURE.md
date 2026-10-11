@@ -72,6 +72,10 @@ cron-job.org ──every minute──▶ /api/tick ─────────�
 
 Each repeating item can carry `skipDates`. Deleting one occurrence adds its date; changing one occurrence adds its date **and** creates a one-off copy with the change. "All of them" edits the series itself.
 
+## Updates
+
+Vercel redeploys on every push. Each build gets an id (`__BUILD_ID__`) and writes `/version.json`; `update.ts` compares them on open, on return to the app, when back online and every 30 minutes, and shows a Refresh bar. The service worker is network-first, so a refresh always loads the new version.
+
 ## Known limits (honest)
 
 - With the app closed, delivery depends on the server and the minute ticker; expect up to ~1 minute delay. iPhone supports web push only for apps added to the Home Screen (iOS 16.4+).

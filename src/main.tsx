@@ -4,6 +4,7 @@ import { App } from './App';
 import { registerServiceWorker } from './lib/notify';
 import { startBackgroundSync } from './lib/push';
 import { startSyncEngine } from './lib/syncEngine';
+import { startUpdateChecks } from './lib/update';
 import './styles.css';
 
 createRoot(document.getElementById('root')!).render(
@@ -13,3 +14,4 @@ createRoot(document.getElementById('root')!).render(
 );
 
 void registerServiceWorker().then(startBackgroundSync).then(startSyncEngine);
+startUpdateChecks();

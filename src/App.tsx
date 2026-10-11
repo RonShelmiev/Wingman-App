@@ -6,7 +6,7 @@ import { timeToMin, toDateStr, toTimeStr } from './lib/dates';
 import { showNotification, startAlarmSound, stopAlarmSound, unlockAudio } from './lib/notify';
 import { ackShown } from './lib/push';
 import { Icon, AppMark } from './components/Icon';
-import { Celebration, ScopeDialog, UndoBar } from './components/Overlays';
+import { Celebration, ScopeDialog, UndoBar, UpdateBar } from './components/Overlays';
 import { Recap } from './screens/Recap';
 import { Welcome } from './screens/Welcome';
 import { t, tn } from './lib/i18n';
@@ -151,7 +151,7 @@ export function App() {
   const nav: [Tab, string, string][] = [['today', t('Today'), 'today'], ['week', t('Week'), 'week'], ['reminders', t('Reminders'), 'bell'], ['settings', t('Settings'), 'settings']];
   const onEdit = (item: Item, date: string) => setSheet({ type: 'edit', item, date });
 
-  if (!onboarded) return <Welcome />;
+  if (!onboarded) return <><Welcome /><UpdateBar /></>;
 
   return (
     <div className="app">
@@ -175,6 +175,7 @@ export function App() {
       {sheet?.type === 'plan' && <Plan today={today} now={now} onClose={closeSheet} />}
       {sheet?.type === 'recap' && <Recap today={today} onClose={closeSheet} />}
 
+      <UpdateBar />
       <UndoBar />
       <ScopeDialog />
       <Celebration />

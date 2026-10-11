@@ -1,19 +1,97 @@
 {
   "v": 3,
-  "createdOnFiles": {"v": 1, "at": "2026-10-11T10:15:00Z"},
+  "createdOnFiles": {
+    "v": 1,
+    "at": "2026-10-11T10:15:00Z"
+  },
   "title": "Wingman App Designs",
-  "launch": {"view": "canvas"},
+  "launch": {
+    "view": "canvas"
+  },
   "pages": [],
   "boards": {
-    "Main.dc.html": {"x": 0, "y": 0, "w": 390, "h": 844, "title": "1 · Today"},
-    "Week.dc.html": {"x": 470, "y": 0, "w": 390, "h": 844, "title": "2 · Week"},
-    "Reminders.dc.html": {"x": 940, "y": 0, "w": 390, "h": 844, "title": "3 · Reminders"},
-    "QuickAdd.dc.html": {"x": 1410, "y": 0, "w": 390, "h": 844, "title": "4 · Quick add"},
-    "Notifications.dc.html": {"x": 1880, "y": 0, "w": 390, "h": 844, "title": "5 · Notifications"}
+    "Main.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "1 \u00b7 Today"
+    },
+    "Week.dc.html": {
+      "x": 470,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "2 \u00b7 Week"
+    },
+    "Reminders.dc.html": {
+      "x": 940,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "3 \u00b7 Reminders"
+    },
+    "QuickAdd.dc.html": {
+      "x": 1410,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "4 \u00b7 Quick add"
+    },
+    "Notifications.dc.html": {
+      "x": 1880,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "5 \u00b7 Notifications"
+    },
+    "Alarm.dc.html": {
+      "x": 0,
+      "y": 1270,
+      "w": 390,
+      "h": 844,
+      "title": "6 \u00b7 Alarm ringing"
+    },
+    "Plan.dc.html": {
+      "x": 470,
+      "y": 1270,
+      "w": 390,
+      "h": 844,
+      "title": "7 \u00b7 Plan with Wingman"
+    },
+    "Areas.dc.html": {
+      "x": 940,
+      "y": 1270,
+      "w": 390,
+      "h": 844,
+      "title": "8 \u00b7 Life areas"
+    }
   },
-  "order": ["Main.dc.html", "Week.dc.html", "Reminders.dc.html", "QuickAdd.dc.html", "Notifications.dc.html"],
+  "order": [
+    "Main.dc.html",
+    "Week.dc.html",
+    "Reminders.dc.html",
+    "QuickAdd.dc.html",
+    "Notifications.dc.html",
+    "Alarm.dc.html",
+    "Plan.dc.html",
+    "Areas.dc.html"
+  ],
   "notes": {
-    "flow": {"x": 0, "y": -300, "text": "Wingman — core screens", "kind": "title1", "maxW": 2270}
+    "flow": {
+      "x": 0,
+      "y": -300,
+      "text": "Wingman \u2014 core screens",
+      "kind": "title1",
+      "maxW": 2270
+    },
+    "round2": {
+      "x": 0,
+      "y": 1000,
+      "text": "Round 2 \u2014 alarm, planning, life areas",
+      "kind": "title1",
+      "maxW": 1330
+    }
   },
   "designSystems": []
 }

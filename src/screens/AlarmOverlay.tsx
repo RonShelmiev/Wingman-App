@@ -1,0 +1,43 @@
+import { useEffect, useRef } from 'react';
+import type { Area, Item } from '../lib/types';
+import { prettyDate, toTimeStr } from '../lib/dates';
+import { repeatLabel } from '../components/ItemRow';
+import { Icon } from '../components/Icon';
+
+interface Props {
+  item: Item;
+  date: string;
+  area?: Area;
+  now: Date;
+  onSnooze: (min: number) => void;
+  onStop: () => void;
+  onDone: () => void;
+}
+
+export function AlarmOverlay({ item, date, area, now, onSnooze, onStop, onDone }: Props) {
+  const stopRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => stopRef.current?.focus(), []);
+  const rep = repeatLabel(item);
+  return (
+    <div className="alarm" role="alertdialog" aria-modal="true" aria-labelledby="alarm-title">
+      <div className="halo" aria-hidden="true" />
+      <span className="tag"><Icon name="alarm" size={18} width={2} />ALARM</span>
+      <span className="clock">{toTimeStr(now)}</span>
+      <span className="date">{prettyDate(date)}</span>
+      <h1 id="alarm-title">{item.title}</h1>
+      <span className="area-line">
+        {area && <span className="dot" style={{ background: area.color }} />}
+        {[area?.name, item.start ? `set for ${item.start}` : null, rep?.toLowerCase()].filter(Boolean).join(' · ')}
+      </span>
+      <div className="actions">
+        <div className="snoozes">
+          <button onClick={() => onSnooze(5)}>5 min</button>
+          <button className="main" onClick={() => onSnooze(10)}>Snooze 10</button>
+          <button onClick={() => onSnooze(30)}>30 min</button>
+        </div>
+        <button className="stop" ref={stopRef} onClick={onStop}>Stop</button>
+        <button className="done-link" onClick={onDone}>Stop &amp; mark done</button>
+      </div>
+    </div>
+  );
+}

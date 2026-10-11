@@ -2,6 +2,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './App';
 import { registerServiceWorker } from './lib/notify';
+import { startBackgroundSync } from './lib/push';
 import './styles.css';
 
 createRoot(document.getElementById('root')!).render(
@@ -10,4 +11,4 @@ createRoot(document.getElementById('root')!).render(
   </StrictMode>,
 );
 
-void registerServiceWorker();
+void registerServiceWorker().then(startBackgroundSync);

@@ -171,7 +171,7 @@ export function QuickAdd({ editing, today, onClose }: Props) {
           ))}
         </div>
         {f.channel === 'alarm' && <span style={{ fontSize: 13, color: needsTime ? 'var(--danger)' : 'var(--muted-2)' }}>{needsTime ? 'Pick a time for the alarm.' : 'Rings full screen with sound until you stop or snooze it.'}</span>}
-        {f.channel === 'email' && <span style={{ fontSize: 13, color: 'var(--muted-2)' }}>Email delivery arrives in the next update; until then you get a push notification.</span>}
+        {f.channel === 'email' && <span style={{ fontSize: 13, color: 'var(--muted-2)' }}>Sends an email and a notification. Turn on Email in Settings first.</span>}
       </div>
 
       <div className="field">

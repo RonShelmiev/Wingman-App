@@ -4,6 +4,7 @@ import { actions, getState, useStore } from './lib/store';
 import { dueReminders, inWindow, isDoneOn, itemsOn } from './lib/schedule';
 import { timeToMin, toDateStr, toTimeStr } from './lib/dates';
 import { showNotification, startAlarmSound, stopAlarmSound, unlockAudio } from './lib/notify';
+import { ackShown } from './lib/push';
 import { Icon, AppMark } from './components/Icon';
 import { Today } from './screens/Today';
 import { Week } from './screens/Week';
@@ -50,8 +51,13 @@ export function App() {
     const quiet = inWindow(toTimeStr(now), st.settings.quietStart, st.settings.quietEnd);
     const canPush = st.settings.pushEnabled && !quiet;
 
+    const shown: string[] = [];
     for (const due of dueReminders(st.items, now, today, st.fired, st.snoozes)) {
       actions.markFired(due.key);
+      // Older than 10 minutes means the app was closed when it was due: the server already
+      // delivered it as a push, so don't ring or notify late.
+      if (now.getTime() - due.fireAt.getTime() > 10 * 60_000) continue;
+      shown.push(due.key);
       const { item } = due;
       const when = item.start ? `${item.start}` : 'Today';
       if (item.channel === 'alarm') {
@@ -65,12 +71,16 @@ export function App() {
       }
     }
 
+    ackShown(shown);
+
     // Morning brief and evening recap, once a day, within 2 hours of the chosen time.
     const nowMin = now.getHours() * 60 + now.getMinutes();
     const routine = (key: string, at: string, title: string, body: () => string) => {
       const k = `${key}@${today}`;
-      if (st.fired[k] || nowMin < timeToMin(at) || nowMin - timeToMin(at) > 120) return;
+      if (st.fired[k] || nowMin < timeToMin(at)) return;
       actions.markFired(k);
+      if (nowMin - timeToMin(at) > 10) return; // missed while closed; the server sent it
+      ackShown([k]);
       if (canPush) {
         void showNotification(title, body(), k);
         toast(title, body());

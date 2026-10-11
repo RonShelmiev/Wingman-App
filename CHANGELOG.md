@@ -2,6 +2,26 @@
 
 Every push is documented here: what changed and why. Newest first.
 
+## 2026-10-11 — Notifications when the app is closed (Phase 3) + Vercel guide
+
+**Added**
+- Small server as Vercel functions (`api/`): `config`, `sync`, `tick`, `snooze`, `ack`, with logic in `server/` and Upstash Redis storage.
+- The app keeps the server updated with the next 14 days of reminders, the morning brief and the evening recap (respecting quiet hours, push on/off and done items).
+- Service worker shows server pushes even when Wingman is closed; alarms stay on screen until dismissed; a "Snooze 10 min" button works right from the notification.
+- Optional email reminders through Resend; Settings has an email switch and address field.
+- Settings shows the status of "When Wingman is closed" (checking / connect / on · synced).
+- `vercel.json`, and `docs/HOSTING_VERCEL.md`, a step-by-step hosting tutorial (Vercel + Upstash + cron-job.org + optional Resend + iPhone install).
+
+**Changed**
+- If the app reopens after a reminder was due more than 10 minutes ago, it no longer rings or notifies late (the server already delivered it); the app tells the server about reminders it showed itself so you don't get them twice.
+
+**Fixed during development**
+- Copies of sent reminders (kept so Snooze works) would have been sent again a day later; they're now stored outside the schedule.
+
+**Verified**
+- `npm test` 29/29 (new: server delivery, stale/duplicate handling, snooze, dead subscriptions, email, API auth, real VAPID-signed + encrypted push request, schedule builder), typecheck and build clean, browser regression run with no console errors.
+- Not verified here: delivery through a real phone's push service. That needs the deployed app (Step 8 of the guide tests it).
+
 ## 2026-10-11 — Design round 2 + working app (Phase 2)
 
 **Design (canvas updated)**

@@ -4,6 +4,7 @@ import { AREA_COLORS, actions, useStore } from '../lib/store';
 import { isRepeating, occursOn, overdueItems } from '../lib/schedule';
 import { notificationPermission, notificationsSupported, requestNotificationPermission } from '../lib/notify';
 import { Sheet } from '../components/Sheet';
+import { enableBackgroundPush, syncNow, useServerStatus } from '../lib/push';
 import { Icon } from '../components/Icon';
 
 interface Props {
@@ -30,10 +31,22 @@ export function Settings({ today, onTestAlarm }: Props) {
     return [`${open} open`, todayN ? `${todayN} today` : '', over ? `${over} overdue` : ''].filter(Boolean).join(' · ');
   };
 
+  const server = useServerStatus();
+
   const togglePush = async (v: boolean) => {
-    if (v && perm !== 'granted') setPerm(await requestNotificationPermission());
+    let p = perm;
+    if (v && p !== 'granted') setPerm((p = await requestNotificationPermission()));
     actions.updateSettings({ pushEnabled: v });
+    if (v && p === 'granted' && server.available) await enableBackgroundPush();
   };
+
+  const bgText = server.available === null ? 'Checking…'
+    : !server.available ? (server.error ?? 'Works once Wingman is hosted with its server — see the hosting guide')
+    : perm !== 'granted' || !s.pushEnabled ? 'Turn on push notifications above'
+    : !server.subscribed ? 'Tap Connect to get reminders with the app closed'
+    : server.error ?? (server.lastSync ? `On · synced ${Math.max(0, Math.round((Date.now() - server.lastSync) / 60000))} min ago` : 'On');
+  const bgOn = !!server.available && server.subscribed && perm === 'granted' && s.pushEnabled;
+  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(s.email.trim());
 
   const pushNote = !notificationsSupported()
     ? 'This browser does not support notifications. On iPhone, add Wingman to your Home Screen first.'
@@ -75,8 +88,21 @@ export function Settings({ today, onTestAlarm }: Props) {
             <Switch on={s.pushEnabled && perm === 'granted'} onChange={togglePush} labelledBy="st-push" disabled={!notificationsSupported() || perm === 'denied'} />
           </div>
           <div className="setting">
-            <div className="txt"><span className="t" id="st-email">Email</span><span className="d">Coming in the next update</span></div>
-            <Switch on={false} onChange={() => undefined} labelledBy="st-email" disabled />
+            <div className="txt"><span className="t">When Wingman is closed</span><span className="d">{bgText}</span></div>
+            {bgOn ? <span className="icon-muted" style={{ color: 'var(--ok)' }}><Icon name="check" size={22} width={2.4} label="On" /></span>
+              : server.available && perm === 'granted' && s.pushEnabled && <button className="btn small" onClick={() => void enableBackgroundPush()}>Connect</button>}
+          </div>
+          <div className="setting wrap">
+            <div className="txt" style={{ flexBasis: 'auto', flex: 1 }}>
+              <span className="t" id="st-email">Email</span>
+              <span className="d">{server.email ? 'For reminders set to “Email”' : 'Needs the email service set up on the server'}</span>
+            </div>
+            <Switch on={s.emailEnabled && server.email} onChange={(v) => actions.updateSettings({ emailEnabled: v })} labelledBy="st-email" disabled={!server.email} />
+            {s.emailEnabled && server.email && (
+              <input className="input" type="email" aria-label="Email address" placeholder="you@example.com" value={s.email} autoComplete="email"
+                style={{ borderColor: s.email && !emailValid ? 'var(--danger)' : undefined }}
+                onChange={(e) => actions.updateSettings({ email: e.target.value })} onBlur={() => void syncNow()} />
+            )}
           </div>
           <div className="setting">
             <div className="txt"><span className="t">Alarm</span><span className="d">Full screen with sound while Wingman is open</span></div>
@@ -117,7 +143,7 @@ export function Settings({ today, onTestAlarm }: Props) {
 
       <p className="note">
         <strong>Install Wingman:</strong> on iPhone, open this page in Safari → Share → Add to Home Screen. On Android/Chrome, use “Install app”. Your data stays on this device.
-        Reminders and alarms go off while Wingman is open or running in the background; reminders with the app fully closed arrive in the next update.
+        With the app closed, reminders and alarms arrive as notifications from the Wingman server (iPhone: only after adding to Home Screen, iOS 16.4+).
       </p>
 
       <button className="btn" style={{ color: 'var(--danger)' }} onClick={() => {

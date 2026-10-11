@@ -45,4 +45,5 @@ export interface Settings {
   dayEnd: string;
   bufferMin: number;
   name: string;
+  email: string;
 }

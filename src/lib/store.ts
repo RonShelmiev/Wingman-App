@@ -36,6 +36,7 @@ const DEFAULT_SETTINGS: Settings = {
   dayEnd: '21:00',
   bufferMin: 15,
   name: '',
+  email: '',
 };
 
 const KEY = 'wingman:v1';
@@ -73,6 +74,12 @@ function set(next: State) {
 }
 
 export const getState = () => state;
+
+/** Listen to every state change (used to keep the server's schedule in sync). */
+export function subscribe(l: () => void) {
+  listeners.add(l);
+  return () => listeners.delete(l);
+}
 
 export function useStore<T>(select: (s: State) => T): T {
   return useSyncExternalStore(

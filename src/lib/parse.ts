@@ -1,5 +1,5 @@
 import type { Channel, Kind, Repeat } from './types';
-import { addDays, parseDate, toDateStr } from './dates';
+import { addDays, dayRange, parseDate, toDateStr } from './dates';
 import { parseHebrew } from './parseHe';
 
 export interface Parsed {
@@ -86,6 +86,14 @@ export function parseQuick(input: string, now: Date, opts: { workDays?: number[]
   // Birthdays and anniversaries come back every year; the word stays in the title.
   if (out.repeat.type === 'none' && /\b(birthday|bday|anniversary)\b/i.test(input)) out.repeat = { type: 'yearly' };
   take(/\bevery (\d+) days\b/i, (m) => (out.repeat = { type: 'everyNDays', n: parseInt(m[1], 10) }));
+  // Chosen days: "Sunday to Thursday", "sun-thu", "every Mon, Wed and Fri"
+  take(new RegExp(`\\b(?:every |on |from )?${WD}s? ?(?:-|–|to|through|thru|until|till) ?${WD}s?\\b`, 'i'), (m) => {
+    out.repeat = { type: 'weekdays', days: dayRange(weekdayIndex(m[1]), weekdayIndex(m[2])) };
+  });
+  take(new RegExp(`\\b(?:every|on) ${WD}s?(?:(?: ?, ?| and | ?& ?)${WD}s?)+\\b`, 'i'), (m) => {
+    const days = [...m[0].matchAll(new RegExp(`\\b${WD}`, 'gi'))].map((x) => weekdayIndex(x[1]));
+    out.repeat = { type: 'weekdays', days: [...new Set(days)].sort((a, b) => a - b) };
+  });
   take(new RegExp(`\\bevery ${WD}s?\\b`, 'i'), (m) => {
     const wd = weekdayIndex(m[1]);
     out.repeat = { type: 'weekly', weekday: wd };

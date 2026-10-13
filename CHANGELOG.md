@@ -2,6 +2,19 @@
 
 Every push is documented here: what changed and why. Newest first.
 
+## 2026-10-13 — Repeat on the days you choose
+
+**Added**
+- **Repeat → Custom days…** in the add/edit sheet: tap the days you want (e.g. Sunday–Thursday, or Mon/Wed/Fri). Days are listed from your week start.
+- Quick add understands chosen days: "Gym sunday to thursday at 7am", "Standup mon-fri 9:30", "Piano every mon, wed and fri", and in Hebrew "חדר כושר ראשון עד חמישי", "מראשון עד חמישי", "א׳-ה׳", "בימים שני ורביעי".
+- Repeat labels show the actual days: "Sun–Thu" / "א׳–ה׳", "Mon, Wed, Fri", instead of a generic "Work days".
+
+**Fixed**
+- Editing a repeating item's other fields could overwrite a changed day choice with the old one; the series now keeps the old repeat only when the repeat itself wasn't touched.
+
+**Verified**
+- `npm test` 61/61 (new: English and Hebrew day ranges/lists, scheduling on chosen days, labels), typecheck and build clean.
+
 ## 2026-10-13 — Alarm sound + delivery diagnostics
 
 **Fixed**

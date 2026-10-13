@@ -43,6 +43,14 @@ describe('Hebrew quick add', () => {
     expect(p('לשלם ארנונה ביום ראשון הבא')).toMatchObject({ title: 'לשלם ארנונה', date: '2026-10-18' });
     expect(p('לשלם ארנונה ביום ראשון').date).toBe('2026-10-11');
   });
+  it('chosen days in Hebrew', () => {
+    expect(p('חדר כושר ראשון עד חמישי ב-7 בבוקר')).toMatchObject({ title: 'חדר כושר', start: '07:00', date: '2026-10-11', repeat: { type: 'weekdays', days: [0, 1, 2, 3, 4] } });
+    expect(p('להשקות צמחים מראשון עד חמישי').repeat).toEqual({ type: 'weekdays', days: [0, 1, 2, 3, 4] });
+    expect(p('ספורט א׳-ה׳ ב-18:00')).toMatchObject({ title: 'ספורט', start: '18:00', repeat: { type: 'weekdays', days: [0, 1, 2, 3, 4] } });
+    expect(p('טיול שישי עד שבת').repeat).toEqual({ type: 'weekdays', days: [5, 6] });
+    expect(p('שיעור פסנתר בימים שני ורביעי ב-17:00')).toMatchObject({ title: 'שיעור פסנתר', start: '17:00', repeat: { type: 'weekdays', days: [1, 3] } });
+    expect(p('להתקשר לאמא כל יום שישי ב-18:00').repeat).toEqual({ type: 'weekly', weekday: 5 });
+  });
   it('reminder offsets in Hebrew', () => {
     expect(p('טיסה מחר ב-14:00 תזכיר לי שעתיים לפני').remindOffsetMin).toBe(120);
     expect(p('שיחה עם הבנק מחר ב-11 חצי שעה לפני').remindOffsetMin).toBe(30);

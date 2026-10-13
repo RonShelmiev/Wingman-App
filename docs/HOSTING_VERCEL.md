@@ -7,7 +7,7 @@ You'll set up four free accounts/services:
 | Service | What it does for Wingman | Cost |
 |---|---|---|
 | **Vercel** | Hosts the app and its small server (`/api`) | Free (Hobby) |
-| **Upstash Redis** (inside Vercel) | Remembers your upcoming reminders on the server | Free tier |
+| **Redis** (inside Vercel: Upstash or Redis) | Remembers your upcoming reminders on the server | Free tier |
 | **cron-job.org** | Taps the server every minute: "anything due?" | Free |
 | **Resend** *(optional)* | Sends email reminders | Free (100/day) |
 
@@ -15,11 +15,9 @@ You'll set up four free accounts/services:
 
 ---
 
-## Step 0 — Pick the branch
+## Step 0 — Branch
 
-The app lives on the branch `claude/wingman-designs`. Vercel deploys `main` as your live site by default. Either:
-- **Recommended:** merge the branch into `main` (ask Claude to open a pull request, then click **Merge** on GitHub), or
-- after Step 2, go to Vercel → your project → **Settings → Git → Production Branch** and enter `claude/wingman-designs`.
+The app lives on `main`, which is what Vercel deploys by default. Nothing to do.
 
 ## Step 1 — Make your secret keys
 
@@ -52,14 +50,14 @@ This is your **CRON_SECRET**.
 4. Vercel detects **Vite** automatically. Leave the build settings as they are.
 5. Click **Deploy**. After about a minute you get a link like `https://wingman-app-xyz.vercel.app`. The app already works there, but background reminders aren't connected yet.
 
-## Step 3 — Add the database (Upstash Redis)
+## Step 3 — Add the database (Redis)
 
 1. In your Vercel project, open the **Storage** tab.
-2. Click **Create Database** (or **Browse Marketplace**) → choose **Upstash** → **Redis** → **Continue**.
+2. Click **Create Database** (or **Browse Marketplace**) → choose **Upstash for Redis** or **Redis** (either works) → **Continue**.
 3. Pick the free plan and a region close to you → **Create**.
 4. When asked, **connect it to the Wingman project** for all environments.
 
-This adds the database settings automatically (variables named `KV_REST_API_URL` / `KV_REST_API_TOKEN` or `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`; Wingman accepts either).
+This adds the database settings automatically (Upstash: `KV_REST_API_URL` / `KV_REST_API_TOKEN` or `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`; Redis: `REDIS_URL`). Wingman accepts any of them.
 
 ## Step 4 — Add your keys to Vercel
 
@@ -139,7 +137,7 @@ Also tap **Download backup** once in a while and keep the file in iCloud Drive: 
 | Problem | Fix |
 |---|---|
 | "Works once Wingman is hosted with its server" | `/api/config` isn't reachable or keys are missing. Re-check Steps 4–5. |
-| "Server storage is not set up yet" | Connect Upstash to the project (Step 3), then redeploy. |
+| "Server storage is not set up yet" | Connect the Redis database to the project (Step 3), then redeploy. |
 | No notifications on iPhone | Open Wingman from the Home Screen icon, not Safari. Check iPhone **Settings → Notifications → Wingman** is allowed and Focus mode isn't hiding it. |
 | Notifications arrive a minute or two late | Normal: the ticker runs once a minute, and phones may delay delivery a little to save battery. |
 | cron-job.org shows 401 | The header must be exactly `Authorization: Bearer <CRON_SECRET>`. |

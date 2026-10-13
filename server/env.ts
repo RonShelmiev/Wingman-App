@@ -3,6 +3,7 @@ import { Redis } from '@upstash/redis';
 import type { Senders, Store } from './core.js';
 import { MemoryStore } from './memoryStore.js';
 import { RedisStore } from './redisStore.js';
+import { UrlRedisStore } from './urlRedisStore.js';
 
 const env = (k: string) => process.env[k]?.trim() || undefined;
 
@@ -12,11 +13,16 @@ export function getStore(): Store {
   // Vercel's Upstash integration sets KV_REST_API_*; a direct Upstash database sets UPSTASH_REDIS_REST_*.
   const url = env('KV_REST_API_URL') ?? env('UPSTASH_REDIS_REST_URL');
   const token = env('KV_REST_API_TOKEN') ?? env('UPSTASH_REDIS_REST_TOKEN');
-  store = url && token ? new RedisStore(new Redis({ url, token })) : new MemoryStore();
+  // Vercel's "Redis" integration (and most other Redis hosts) set a plain REDIS_URL instead.
+  const redisUrl = env('REDIS_URL');
+  store = url && token ? new RedisStore(new Redis({ url, token })) : redisUrl ? new UrlRedisStore(redisUrl) : new MemoryStore();
   return store;
 }
 
-export const storageConfigured = () => env('WINGMAN_DEV_MEMORY') === '1' || !!((env('KV_REST_API_URL') ?? env('UPSTASH_REDIS_REST_URL')) && (env('KV_REST_API_TOKEN') ?? env('UPSTASH_REDIS_REST_TOKEN')));
+export const storageConfigured = () =>
+  env('WINGMAN_DEV_MEMORY') === '1' ||
+  !!((env('KV_REST_API_URL') ?? env('UPSTASH_REDIS_REST_URL')) && (env('KV_REST_API_TOKEN') ?? env('UPSTASH_REDIS_REST_TOKEN'))) ||
+  !!env('REDIS_URL');
 export const vapidPublicKey = () => env('VAPID_PUBLIC_KEY') ?? null;
 export const emailConfigured = () => !!(env('RESEND_API_KEY') && env('EMAIL_FROM'));
 

@@ -2,6 +2,18 @@
 
 Every push is documented here: what changed and why. Newest first.
 
+## 2026-10-13 — Works with Vercel's "Redis" database too
+
+**Added**
+- The server now also accepts a plain `REDIS_URL` (what Vercel's **Redis** integration provides), not only Upstash's REST variables. Before, connecting "Redis" instead of "Upstash for Redis" left the server without storage: no reminders with the app closed and no sync.
+- `server/urlRedisStore.ts`: same data layout as the Upstash store, over a normal Redis connection (reused between requests).
+
+**Changed**
+- Hosting guide: Step 0 no longer mentions the old `claude/wingman-designs` branch (everything is on `main`); Step 3 says either database works.
+
+**Verified**
+- `npm test` 58/58 (+2 real-Redis tests that run when `TEST_REDIS_URL` is set). Ran those against a local Redis 7.4: schedule → send once → re-sync keeps the sent copy → snooze → ack, and the vault compare-and-set (first real run of that Lua script). The API routes report `storage: true` and save/load the vault with `REDIS_URL` set. Build clean.
+
 ## 2026-10-11 — "Update available" bar
 
 **Added**

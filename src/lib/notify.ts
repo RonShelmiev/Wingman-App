@@ -33,12 +33,23 @@ export async function showNotification(title: string, body: string, tag: string,
 let ctx: AudioContext | null = null;
 let timer: number | null = null;
 
+/** One shared AudioContext. On iPhone (iOS 17+), "playback" lets the alarm play even with the silent switch on. */
+function audio(): AudioContext {
+  const session = (navigator as Navigator & { audioSession?: { type: string } }).audioSession;
+  if (session) session.type = 'playback';
+  ctx ??= new AudioContext();
+  void ctx.resume();
+  return ctx;
+}
+
+/** Browsers keep sound off until the first tap; true while that's still the case. */
+export const soundBlocked = () => !ctx || ctx.state !== 'running';
+
 /** Repeating two-tone beep until stopAlarmSound(). Uses Web Audio, so no sound file is needed. */
 export function startAlarmSound() {
   stopAlarmSound();
   try {
-    ctx ??= new AudioContext();
-    void ctx.resume();
+    audio();
   } catch {
     return;
   }
@@ -72,8 +83,7 @@ export function stopAlarmSound() {
 /** Browsers only allow sound after a user gesture; call this from any tap to unlock audio early. */
 export function unlockAudio() {
   try {
-    ctx ??= new AudioContext();
-    void ctx.resume();
+    audio();
   } catch {
     // No audio available.
   }

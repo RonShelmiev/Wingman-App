@@ -39,6 +39,7 @@ export function getSenders(): Senders {
         return 'ok';
       } catch (e) {
         const code = (e as { statusCode?: number }).statusCode;
+        console.error('push failed', JSON.stringify({ service: new URL(sub.endpoint).host, status: code ?? null, body: String((e as { body?: unknown }).body ?? (e as Error).message).slice(0, 300) }));
         return code === 404 || code === 410 ? 'gone' : 'error';
       }
     },

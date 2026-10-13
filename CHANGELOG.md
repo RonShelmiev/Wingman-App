@@ -2,6 +2,18 @@
 
 Every push is documented here: what changed and why. Newest first.
 
+## 2026-10-13 — Alarm sound + delivery diagnostics
+
+**Fixed**
+- Opening Wingman onto a waiting alarm showed it silently (browsers block sound until the first tap). The alarm screen now says "Tap anywhere to hear the alarm" and any tap starts the sound.
+- On iPhone (iOS 17+), the alarm sound asks for "playback" audio, so the silent switch no longer mutes it while Wingman is open.
+
+**Added**
+- Server logs for troubleshooting background delivery (no personal data): each sync logs how many reminders and which push service the device uses (or none); each tick with something due logs sent / failed / no-subscription counts; failed pushes log the push service's status code.
+
+**Verified**
+- `npm test` 58/58, typecheck and build clean.
+
 ## 2026-10-13 — Works with Vercel's "Redis" database too
 
 **Added**

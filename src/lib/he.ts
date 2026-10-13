@@ -210,6 +210,7 @@ export const HE: Record<string, string> = {
 
   // Alarm
   'ALARM': 'שעון מעורר',
+  'Tap anywhere to hear the alarm': 'הקישו במסך כדי לשמוע את השעון המעורר',
   'set for {time}': 'נקבע ל-{time}',
   '5 min': '5 דק׳',
   'Snooze 10': 'נודניק 10',

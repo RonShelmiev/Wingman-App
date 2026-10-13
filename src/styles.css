@@ -254,6 +254,7 @@ a { color: var(--blue); }
 .alarm .tag { display: flex; gap: 8px; align-items: center; font-size: 14px; font-weight: 700; letter-spacing: .06em; color: #FFB79E; }
 .alarm .clock { margin-top: 24px; font-family: var(--display); font-size: 96px; font-weight: 700; line-height: 1; letter-spacing: -.02em; }
 .alarm .date { margin-top: 8px; color: #B7BCCB; }
+.alarm .sound-hint { margin-top: 14px; padding: 10px 16px; border: 0; border-radius: 999px; background: rgba(255,183,158,.16); color: #FFB79E; font: inherit; font-size: 14px; font-weight: 600; }
 .alarm h1 { margin-top: 44px; font-size: 30px; text-align: center; overflow-wrap: anywhere; }
 .alarm .area-line { margin-top: 8px; display: flex; gap: 8px; align-items: center; font-size: 14px; color: #D5D8E2; }
 .alarm .actions { margin-top: auto; width: 100%; max-width: 432px; display: flex; flex-direction: column; gap: 12px; position: relative; }

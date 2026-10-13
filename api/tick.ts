@@ -5,7 +5,9 @@ import { cronAuthorized, getSenders, getStore, json } from '../server/env.js';
 async function tick(req: Request) {
   if (!cronAuthorized(req)) return json({ error: 'unauthorized' }, 401);
   try {
-    return json(await processDue(getStore(), getSenders(), Date.now()));
+    const result = await processDue(getStore(), getSenders(), Date.now());
+    if (result.due) console.log('tick', JSON.stringify(result));
+    return json(result);
   } catch (e) {
     console.error(e);
     return json({ error: 'server error' }, 500);

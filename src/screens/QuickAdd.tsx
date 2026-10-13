@@ -101,20 +101,23 @@ export function QuickAdd({ editing, occurrence, today, onClose }: Props) {
   const needsTime = f.channel === 'alarm' && !f.start;
   // Timing a repeating item counts for the tapped occurrence.
   const focusDate = editing && !isRepeating(editing) && editing.date ? editing.date : occ;
+  // These repeats already say which days, so there's no date to pick: they start today (or keep the series start).
+  const dateless = f.repeat === 'daily' || f.repeat === 'weekdays' || f.repeat === 'days';
   const canSave = f.title.trim().length > 0 && !needsTime && !(f.repeat === 'days' && !f.days.length);
 
   const save = async () => {
     if (!canSave) return;
+    const date = f.date || (f.repeat !== 'none' ? today : '');
     const data = {
       title: f.title.trim(),
       kind: f.kind,
       areaId: f.areaId,
-      date: f.date || null,
+      date: date || null,
       start: f.start || null,
       durationMin: f.durationMin,
       remindOffsetMin: f.channel === 'alarm' ? (f.remindOffsetMin ?? 0) : f.remindOffsetMin,
       channel: f.channel,
-      repeat: f.date ? toRepeat(f.repeat, f.date, workDays, f.days) : ({ type: 'none' } as Repeat),
+      repeat: date ? toRepeat(f.repeat, date, workDays, f.days) : ({ type: 'none' } as Repeat),
     };
     if (!editing) {
       actions.addItem(data);
@@ -161,11 +164,13 @@ export function QuickAdd({ editing, occurrence, today, onClose }: Props) {
       )}
 
       <div className="inline-inputs">
-        <div className="field">
-          <label htmlFor="qa-date">{t('Date')}</label>
-          <input id="qa-date" type="date" className="input" value={f.date ?? ''} onChange={(e) => set('date', e.target.value)} />
-        </div>
-        <div className="field">
+        {!dateless && (
+          <div className="field">
+            <label htmlFor="qa-date">{f.repeat === 'weekly' || f.repeat === 'every2' || f.repeat === 'every3' ? t('Start date') : t('Date')}</label>
+            <input id="qa-date" type="date" className="input" value={f.date ?? ''} onChange={(e) => set('date', e.target.value)} />
+          </div>
+        )}
+        <div className="field" style={dateless ? { gridColumn: '1 / -1' } : undefined}>
           <label htmlFor="qa-time">{t('Time')} {f.kind === 'task' && <span>({t('optional')})</span>}</label>
           <input id="qa-time" type="time" className="input" value={f.start} onChange={(e) => set('start', e.target.value)} />
         </div>

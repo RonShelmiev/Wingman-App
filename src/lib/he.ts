@@ -155,6 +155,7 @@ export const HE: Record<string, string> = {
   'Just type it — Wingman figures out the rest': 'פשוט כותבים — Wingman מבין את השאר',
   'Saves as': 'יישמר בתור',
   'Date': 'תאריך',
+  'Start date': 'תאריך התחלה',
   'Time': 'שעה',
   'How long': 'משך',
   'You usually need {d} for this': 'בדרך כלל זה לוקח לך {d}',

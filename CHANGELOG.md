@@ -2,6 +2,16 @@
 
 Every push is documented here: what changed and why. Newest first.
 
+## 2026-10-13 — No date to pick for day-based repeats
+
+**Changed**
+- Choosing **Every day**, **Work days** or **Custom days** hides the Date field: those repeats already say which days, so they simply start today (editing keeps the series' own start). The time field takes the full row.
+- For **Every week** and **Every 2/3 days** the field is now called **Start date**; **Every month** and **Every year** keep **Date** (it's the day of the month / the birthday).
+- Picking any repeat on an item without a date now starts it today instead of quietly dropping the repeat.
+
+**Verified**
+- `npm test` 61/61, typecheck and build clean.
+
 ## 2026-10-13 — Repeat on the days you choose
 
 **Added**

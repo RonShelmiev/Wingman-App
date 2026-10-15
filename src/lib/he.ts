@@ -357,6 +357,8 @@ export const HE: Record<string, string> = {
   'Server storage is not set up yet': 'האחסון בשרת עוד לא הוגדר',
   'This file is not a Wingman backup.': 'הקובץ הזה הוא לא גיבוי של Wingman.',
 
+  'still ringing': 'עדיין מצלצל',
+
   // Updates
   'A new version of Wingman is ready.': 'גרסה חדשה של Wingman מוכנה.',
   'Refresh': 'רענון',

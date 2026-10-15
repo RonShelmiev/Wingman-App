@@ -41,6 +41,9 @@ describe('buildSchedule', () => {
     expect(keys).not.toContain('late@2026-10-11');
     expect(keys).toContain('wake@2026-10-12');
     expect(r.find((x) => x.key === 'wake@2026-10-12')).toMatchObject({ alarm: true, title: '⏰ T' });
+    // Unanswered alarms come back at +1, +2, +3, +5 and +8 minutes.
+    const base = r.find((x) => x.key === 'wake@2026-10-12')!.fireAt;
+    expect(r.filter((x) => x.key.startsWith('wake@2026-10-12#')).map((x) => (x.fireAt - base) / 60_000)).toEqual([1, 2, 3, 5, 8]);
     expect(keys.filter((k) => /^(done|quiet)@/.test(k))).toEqual([]);
   });
 

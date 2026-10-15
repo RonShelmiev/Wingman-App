@@ -1,5 +1,5 @@
 // Wingman service worker: offline app shell + notification clicks.
-const CACHE = 'wingman-v3';
+const CACHE = 'wingman-v4';
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE).then((c) => c.addAll(['/', '/index.html', '/icon.svg', '/icons/icon-192.png', '/manifest.webmanifest'])));
@@ -36,7 +36,11 @@ self.addEventListener('push', (event) => {
   } catch {
     data = { title: 'Wingman', body: event.data ? event.data.text() : '' };
   }
-  const actions = [{ action: 'snooze', title: data.alarm ? 'Snooze 10 min' : 'Remind me in 10 min' }];
+  // Alarms get Stop + Snooze; the labels follow the language the app was in when it scheduled them.
+  const he = /[\u0590-\u05FF]/.test((data.title || '') + (data.body || ''));
+  const actions = data.alarm
+    ? [{ action: 'stop', title: he ? 'עצירה' : 'Stop' }, { action: 'snooze', title: he ? 'נודניק 10 דק׳' : 'Snooze 10 min' }]
+    : [{ action: 'snooze', title: he ? 'להזכיר בעוד 10 דק׳' : 'Remind me in 10 min' }];
   event.waitUntil(
     self.registration.showNotification(data.title || 'Wingman', {
       body: data.body || '',
@@ -55,6 +59,16 @@ self.addEventListener('push', (event) => {
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   const data = event.notification.data || {};
+  if (event.action === 'stop' && data.deviceId && data.tag) {
+    event.waitUntil(
+      fetch('/api/ack', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ deviceId: data.deviceId, keys: [data.tag] }),
+      }).catch(() => undefined)
+    );
+    return;
+  }
   if (event.action === 'snooze' && data.deviceId && data.tag) {
     event.waitUntil(
       fetch('/api/snooze', {
@@ -66,10 +80,16 @@ self.addEventListener('notificationclick', (event) => {
     return;
   }
   // The evening recap opens the "move to tomorrow" sheet.
-  const url = data.tag && String(data.tag).startsWith('recap@') ? '/?recap=1' : '/';
+  // Tapping an alarm opens straight into the ringing alarm screen.
+  const tag = data.tag ? String(data.tag) : '';
+  const url = tag.startsWith('recap@') ? '/?recap=1' : data.alarm && tag ? `/?alarm=${encodeURIComponent(tag)}` : '/';
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((wins) => {
-      if (wins.length) return (url === '/' ? Promise.resolve(wins[0]) : wins[0].navigate(url)).then((w) => (w || wins[0]).focus());
+      if (wins.length) {
+        // Tell an open app directly; navigating would reload it.
+        if (data.alarm && tag) { wins[0].postMessage({ type: 'alarm', key: tag }); return wins[0].focus(); }
+        return (url === '/' ? Promise.resolve(wins[0]) : wins[0].navigate(url)).then((w) => (w || wins[0]).focus());
+      }
       return self.clients.openWindow(url);
     })
   );

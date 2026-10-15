@@ -55,6 +55,7 @@ describe('Hebrew translations', () => {
       expect(prettyDate('2026-10-15')).toBe('ה׳, 15 באוקטובר');
       expect(formatDuration(90)).toBe('שעה ו-30 דק׳');
       expect(formatDuration(120)).toBe('שעתיים');
+      expect(t('set for {time}', { time: '06:30' })).toBe('נקבע ל-\u206606:30\u2069');
     } finally {
       setLang('en');
     }

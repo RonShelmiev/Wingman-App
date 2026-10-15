@@ -127,6 +127,28 @@ export function App() {
     }, { label: t('Review'), run: () => setSheet({ type: 'recap' }) });
   }, [now, today, toast]);
 
+  // Tapped an alarm notification: open the ringing screen (from a fresh start via ?alarm=…, or a message if already open).
+  useEffect(() => {
+    const open = (raw: string) => {
+      const key = raw.split('#')[0];
+      const [id, date] = key.split('@');
+      const item = getState().items.find((i) => i.id === id);
+      if (!item || !date || isDoneOn(item, date)) return;
+      actions.markFired(key);
+      ackShown([key]);
+      setRings((r) => (r.some((x) => x.key === key) ? r : [...r, { item, date, key }]));
+      startAlarmSound();
+    };
+    const param = new URLSearchParams(location.search).get('alarm');
+    if (param) {
+      history.replaceState(null, '', location.pathname);
+      open(param);
+    }
+    const onMessage = (e: MessageEvent) => e.data?.type === 'alarm' && typeof e.data.key === 'string' && open(e.data.key);
+    navigator.serviceWorker?.addEventListener('message', onMessage);
+    return () => navigator.serviceWorker?.removeEventListener('message', onMessage);
+  }, []);
+
   const ring = rings[0];
   const closeRing = (fn?: () => void) => {
     fn?.();

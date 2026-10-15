@@ -31,3 +31,12 @@ export interface PushPayload {
   alarm: boolean;
   deviceId: string;
 }
+
+/** An unanswered alarm comes back after these many minutes (like an alarm that keeps ringing). */
+export const ALARM_REPEAT_MIN = [1, 2, 3, 5, 8];
+
+/** Keys of an alarm's repeat pushes: "<key>#r1"… */
+export const alarmRepeatKeys = (key: string) => ALARM_REPEAT_MIN.map((_, i) => `${key}#r${i + 1}`);
+
+/** The occurrence key a repeat push belongs to. */
+export const baseKey = (key: string) => key.split('#')[0];

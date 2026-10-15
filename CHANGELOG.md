@@ -2,6 +2,20 @@
 
 Every push is documented here: what changed and why. Newest first.
 
+## 2026-10-15 — Alarms that keep ringing
+
+**Why:** on iPhone an alarm from Wingman only appeared as a notification; the alarm screen showed only after tapping it. iPhones allow full-screen alarms over the lock screen only for native App Store apps, so a web app can't do that. These changes make Wingman's alarm notifications much harder to miss.
+
+**Changed**
+- **Repeats until answered:** an alarm that isn't stopped comes back at +1, +2, +3, +5 and +8 minutes (with vibration on Android).
+- **Stop and Snooze on the notification itself** (long-press or pull down on iPhone). Stop ends the repeats; Snooze 10 min silences them and re-arms the alarm (which repeats again if ignored). Labels follow the app's language.
+- **Tapping an alarm notification opens straight into the ringing alarm screen**, even if tapped late or if the app was already open.
+- Hebrew: times inside sentences keep their direction ("נקבע ל-06:30" no longer shows as "06:30-ל").
+
+**Verified**
+- `npm test` 60/60 (new: repeat timing, repeats sent under the alarm's tag, Stop ends repeats, Snooze cancels and re-arms them, Hebrew time direction). Browser: alarm link opened 40 minutes late shows the ringing screen in Hebrew; "Stop & mark done" closes it; the same link afterwards does nothing.
+- Not verifiable here: how iOS displays repeated notifications and action buttons on a real iPhone.
+
 ## 2026-10-11 — "Update available" bar
 
 **Added**

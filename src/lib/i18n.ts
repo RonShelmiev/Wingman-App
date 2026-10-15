@@ -12,7 +12,13 @@ export function setLang(l: Lang) {
 /** Translate, filling {name} placeholders. */
 export function t(key: string, vars?: Record<string, string | number>): string {
   let s = lang === 'he' ? HE[key] ?? key : key;
-  if (vars) for (const [k, v] of Object.entries(vars)) s = s.split(`{${k}}`).join(String(v));
+  if (vars) {
+    for (const [k, v] of Object.entries(vars)) {
+      // In Hebrew, keep times like 06:30 left-to-right so "ל-06:30" doesn't flip to "06:30-ל".
+      const val = lang === 'he' && /^\d{1,2}:\d{2}/.test(String(v)) ? `\u2066${v}\u2069` : String(v);
+      s = s.split(`{${k}}`).join(val);
+    }
+  }
   return s;
 }
 

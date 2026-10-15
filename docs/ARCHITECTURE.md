@@ -79,7 +79,7 @@ Vercel redeploys on every push. Each build gets an id (`__BUILD_ID__`) and write
 ## Known limits (honest)
 
 - With the app closed, delivery depends on the server and the minute ticker; expect up to ~1 minute delay. iPhone supports web push only for apps added to the Home Screen (iOS 16.4+).
-- With the app closed, an alarm arrives as a persistent notification with the phone's notification sound, not a ringing full-screen alarm.
+- With the app closed, an alarm arrives as a notification (repeating at +1, +2, +3, +5, +8 min until Stop/Snooze) with the phone's notification sound, not a ringing full-screen alarm: iOS reserves that for native apps (AlarmKit / Critical Alerts).
 - The server schedules 14 days ahead; open the app at least once every two weeks.
 - A web alarm can't override the phone's silent switch the way the built-in Clock app can.
 - Sync merges whole items: if the same item is edited on two devices before they sync, the later edit wins.

@@ -90,3 +90,31 @@ describe('vault', () => {
     await expect(handleVaultPut(store, { id: ID, version: 2, blob: 'plain text' })).rejects.toThrow(BadRequest);
   });
 });
+
+describe('alarms that keep ringing', () => {
+  it('repeat pushes go out under the alarm\'s own tag, and Stop (ack) ends them', async () => {
+    const { handleAck } = await import('./core');
+    const store = new MemoryStore();
+    const alarm = (key: string, at: number) => rem(key, at, { alarm: true });
+    await handleSync(store, { deviceId: DEV, subscription: SUB, email: null, reminders: [alarm('w@d', T), alarm('w@d#r1', T + 60_000), alarm('w@d#r2', T + 120_000)] }, T - 1000);
+    const { s, pushes } = fakeSenders();
+    await processDue(store, s, T + 61_000);
+    expect(pushes.map((p) => p.tag)).toEqual(['w@d', 'w@d']);
+    await handleAck(store, DEV, ['w@d']);
+    expect((await processDue(store, s, T + 600_000)).due).toBe(0);
+  });
+
+  it('Snooze cancels pending repeats and re-arms the alarm with fresh ones', async () => {
+    const store = new MemoryStore();
+    const alarm = (key: string, at: number) => rem(key, at, { alarm: true });
+    await handleSync(store, { deviceId: DEV, subscription: SUB, email: null, reminders: [alarm('w@d', T), alarm('w@d#r1', T + 60_000)] }, T - 1000);
+    const { s, pushes } = fakeSenders();
+    await processDue(store, s, T + 1000);
+    expect(await handleSnooze(store, DEV, 'w@d', 10, T + 2000)).toEqual({ snoozed: true });
+    // The old repeat at T+1min is gone; the snoozed alarm comes at T+10min and repeats after it.
+    expect((await processDue(store, s, T + 5 * 60_000)).due).toBe(0);
+    await processDue(store, s, T + 2000 + 10 * 60_000);
+    await processDue(store, s, T + 2000 + 11 * 60_000);
+    expect(pushes).toHaveLength(3);
+  });
+});

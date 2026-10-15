@@ -1,4 +1,5 @@
 import type { PushPayload, PushSubscriptionJSON, ScheduledReminder, SyncRequest } from './types.js';
+import { ALARM_REPEAT_MIN, alarmRepeatKeys, baseKey } from './types.js';
 
 export interface Device {
   subscription: PushSubscriptionJSON | null;
@@ -99,16 +100,26 @@ export async function handleSync(store: Store, req: SyncRequest, now: number) {
 export async function handleSnooze(store: Store, deviceId: string, key: string, minutes: number, now: number) {
   if (!DEVICE_ID.test(deviceId) || typeof key !== 'string' || key.length > 120) throw new BadRequest('bad request');
   const m = Math.min(24 * 60, Math.max(1, Math.round(minutes || 10)));
+  key = baseKey(key);
+  // Snoozing an alarm silences its pending repeats; the snoozed alarm repeats again if ignored.
+  for (const k of alarmRepeatKeys(key)) await store.removeReminder(deviceId, k);
   const original = await store.getReminder(deviceId, `sent:${key}`);
   if (!original) return { snoozed: false };
-  await store.addReminder(deviceId, { ...original, key: original.key.replace(/^sent:/, ''), fireAt: now + m * 60_000 });
+  const fireAt = now + m * 60_000;
+  await store.addReminder(deviceId, { ...original, key, fireAt });
+  if (original.alarm) {
+    const keys = alarmRepeatKeys(key);
+    for (let i = 0; i < keys.length; i++) await store.addReminder(deviceId, { ...original, key: keys[i], fireAt: fireAt + ALARM_REPEAT_MIN[i] * 60_000 });
+  }
   return { snoozed: true };
 }
 
 /** The app already showed this reminder itself, so the server shouldn't push it too. */
 export async function handleAck(store: Store, deviceId: string, keys: string[]) {
   if (!DEVICE_ID.test(deviceId) || !Array.isArray(keys)) throw new BadRequest('bad request');
-  for (const k of keys.slice(0, 50)) if (typeof k === 'string' && k.length <= 120) await store.removeReminder(deviceId, k);
+  // Acknowledging an alarm also stops its repeats.
+  const all = keys.slice(0, 50).filter((k): k is string => typeof k === 'string' && k.length <= 120);
+  for (const k of new Set([...all, ...all.flatMap((k) => alarmRepeatKeys(baseKey(k)))])) await store.removeReminder(deviceId, k);
   return { ok: true };
 }
 
@@ -129,7 +140,7 @@ export async function processDue(store: Store, senders: Senders, now: number) {
     // Keep a copy so a "Snooze" tap on the notification can re-schedule it.
     await store.keepSent(deviceId, { ...reminder, key: `sent:${reminder.key}` });
     if (device.subscription) {
-      const res = await senders.push(device.subscription, { title: reminder.title, body: reminder.body, tag: reminder.key, alarm: reminder.alarm, deviceId });
+      const res = await senders.push(device.subscription, { title: reminder.title, body: reminder.body, tag: baseKey(reminder.key), alarm: reminder.alarm, deviceId });
       if (res === 'ok') sent++;
       if (res === 'gone') {
         gone++;

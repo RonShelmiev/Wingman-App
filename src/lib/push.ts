@@ -2,6 +2,7 @@
 // as push notifications (and email) even when Wingman is closed.
 import { useSyncExternalStore } from 'react';
 import type { ScheduledReminder } from '../../server/types';
+import { ALARM_REPEAT_MIN, alarmRepeatKeys } from '../../server/types';
 import type { State } from './store';
 import { getState, subscribe } from './store';
 import { addDays, at, toDateStr, toTimeStr } from './dates';
@@ -32,6 +33,12 @@ export function buildSchedule(s: State, now: Date, opts: { email: boolean }): Sc
       const email = item.channel === 'email' && opts.email && settings.emailEnabled && !!settings.email;
       if (!alarm && (quiet(fireAt) || (!settings.pushEnabled && !email))) continue;
       const time = item.start ?? '09:00';
+      // An unanswered alarm keeps coming back until it's stopped or snoozed.
+      if (alarm) {
+        alarmRepeatKeys(key).forEach((k, i) => out.push({
+          key: k, fireAt: fireAt.getTime() + ALARM_REPEAT_MIN[i] * 60_000, title: `⏰ ${item.title}`, body: `${t('Alarm')} · ${time} · ${t('still ringing')}`, alarm: true, email: false,
+        }));
+      }
       out.push({
         key,
         fireAt: fireAt.getTime(),
@@ -152,6 +159,7 @@ export async function syncNow() {
 
 /** Tell the server the app already showed these, so it doesn't push them again. */
 export function ackShown(keys: string[]) {
+  keys = keys.flatMap((k) => [k, ...alarmRepeatKeys(k)]);
   if (!status.available || !keys.length) return;
   void fetch('/api/ack', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ deviceId: deviceId(), keys }) }).catch(() => undefined);
 }

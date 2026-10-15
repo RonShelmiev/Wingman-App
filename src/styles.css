@@ -349,5 +349,6 @@ a { color: var(--blue); }
 .note-when { margin-top: auto; font-size: 11px; color: var(--muted); }
 .note-title-input { border: none; background: transparent; font-family: var(--display); font-size: 24px; font-weight: 700; padding: 4px 0; width: 100%; color: var(--ink); }
 .note-title-input:focus-visible, .note-body-input:focus-visible { outline: none; }
-.note-body-input { border: none; background: transparent; font-size: 16px; line-height: 1.55; width: 100%; resize: none; min-height: 220px; padding: 0; color: var(--ink); }
-.sheet:has(.note-body-input) { min-height: 80dvh; }
+/* The text box fills the sheet and scrolls itself, so the page never jumps while typing. */
+.note-body-input { border: none; background: transparent; font-size: 16px; line-height: 1.55; width: 100%; resize: none; flex: 1 1 auto; min-height: 45dvh; padding: 0; color: var(--ink); }
+.sheet:has(.note-body-input) { height: 88dvh; }

@@ -2,6 +2,20 @@
 
 Every push is documented here: what changed and why. Newest first.
 
+## 2026-10-15 — Fix: typing in notes
+
+**Problem:** typing in a note jumped the cursor to a button after every letter, so spaces were lost (they "pressed" that button) and the title kept only its first letter.
+
+**Cause:** the pop-up sheet re-ran its "focus the first field" step on every keystroke, because the note editor gave it a new close function each time it redrew.
+
+**Fixed**
+- Sheets now focus once, when they open (and prefer a text field over a button). This also protects every other sheet.
+- The note editor keeps your typing on screen and saves 600 ms after you pause, whenever you close it (Done, tapping outside, Escape), and when the app goes to the background — instead of saving the whole app on every keystroke.
+- The note's text box fills the sheet and scrolls by itself, so the screen doesn't jump while you type.
+
+**Verified**
+- Browser runs typing key by key (not pasting, which is how the first test missed this): note body and title, Quick add, welcome name and a new area name all keep every character; a note survives a reload after a pause and saves when closed by tapping outside; the earlier notes test (pin, search, delete + Undo) still passes. `npm test` 64/64.
+
 ## 2026-10-15 — Notes
 
 **Added**

@@ -10,6 +10,17 @@ export type Repeat =
   | { type: 'monthly' } // same day of month as `date` (last day if the month is shorter)
   | { type: 'yearly' }; // same day and month as `date` (birthdays, anniversaries)
 
+/** A plain note: no date, no time. */
+export interface Note {
+  id: string;
+  title: string;
+  body: string;
+  pinned: boolean;
+  createdAt: string;
+  /** Last change, for sorting and merging between devices. */
+  updatedAt?: string;
+}
+
 export interface Area {
   id: string;
   name: string;

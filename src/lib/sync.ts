@@ -3,7 +3,7 @@
 // A device gets a random sync code. The server only stores an encrypted blob under a hash of that code,
 // so it can't read your data. Every device with the code downloads the blob, merges it with what it has
 // (newest change wins per item; deletions carry over) and uploads the result.
-import type { Area, Completion, Item, Settings } from './types';
+import type { Area, Completion, Item, Note, Settings } from './types';
 import { HISTORY_LIMIT } from './insights';
 import { addDays, toDateStr } from './dates';
 import { DEFAULT_AREAS, EPOCH, type State } from './store';
@@ -13,6 +13,8 @@ const LOCAL_SETTINGS = ['pushEnabled', 'theme'] as const;
 
 export interface Synced {
   items: Item[];
+  /** Missing in copies made before notes existed. */
+  notes?: Note[];
   areas: Area[];
   settings: Omit<Settings, (typeof LOCAL_SETTINGS)[number]>;
   settingsUpdatedAt: string;
@@ -27,7 +29,7 @@ export function toSynced(s: State): Synced {
   const settings = { ...s.settings } as Partial<Settings>;
   for (const k of LOCAL_SETTINGS) delete settings[k];
   return {
-    items: s.items, areas: s.areas, settings: settings as Synced['settings'], settingsUpdatedAt: s.settingsUpdatedAt,
+    items: s.items, notes: s.notes, areas: s.areas, settings: settings as Synced['settings'], settingsUpdatedAt: s.settingsUpdatedAt,
     history: s.history, historyClearedAt: s.historyClearedAt, deleted: s.deleted, fired: s.fired, snoozes: s.snoozes,
   };
 }
@@ -54,6 +56,7 @@ export function merge(local: State, remote: Synced, now = new Date()): State {
   }
 
   const items = mergeById(local.items, remote.items ?? [], deleted);
+  const notes = mergeById(local.notes, remote.notes ?? [], deleted);
   let areas = mergeById(local.areas, remote.areas ?? [], deleted);
   if (!areas.length) areas = DEFAULT_AREAS;
   // Items whose area was deleted elsewhere move to the first area.
@@ -83,6 +86,7 @@ export function merge(local: State, remote: Synced, now = new Date()): State {
   return {
     ...local,
     items: fixedItems,
+    notes,
     areas,
     settings,
     settingsUpdatedAt: later(local.settingsUpdatedAt, remote.settingsUpdatedAt) ?? EPOCH,

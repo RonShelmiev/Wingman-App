@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react';
-import type { Area, Completion, FocusTimer, Item, Settings } from './types';
+import type { Area, Completion, FocusTimer, Item, Note, Settings } from './types';
 import { HISTORY_LIMIT } from './insights';
 import { setLang, t } from './i18n';
 import { addDays, toDateStr } from './dates';
@@ -7,6 +7,7 @@ import { isRepeating } from './schedule';
 
 export interface State {
   items: Item[];
+  notes: Note[];
   areas: Area[];
   settings: Settings;
   /** Occurrence keys whose reminder already went off. */
@@ -83,6 +84,7 @@ function load(): State {
       const onboarded = s.settings?.onboarded ?? (s.items?.length ?? 0) > 0;
       return {
         items: s.items ?? [],
+        notes: s.notes ?? [],
         areas: s.areas?.length ? s.areas : DEFAULT_AREAS,
         settings: { ...DEFAULT_SETTINGS, ...s.settings, onboarded },
         fired: s.fired ?? {},
@@ -98,7 +100,7 @@ function load(): State {
   } catch {
     // Storage unavailable or corrupt: start fresh.
   }
-  return { items: [], areas: DEFAULT_AREAS, settings: DEFAULT_SETTINGS, fired: {}, snoozes: {}, history: [], timer: null, deleted: {}, settingsUpdatedAt: EPOCH, historyClearedAt: null, sync: null };
+  return { items: [], notes: [], areas: DEFAULT_AREAS, settings: DEFAULT_SETTINGS, fired: {}, snoozes: {}, history: [], timer: null, deleted: {}, settingsUpdatedAt: EPOCH, historyClearedAt: null, sync: null };
 }
 
 let state: State = load();
@@ -110,17 +112,20 @@ function set(next: State) {
   const now = new Date().toISOString();
   const prevItems = new Map(state.items.map((i) => [i.id, i]));
   const prevAreas = new Map(state.areas.map((a) => [a.id, a]));
+  const prevNotes = new Map(state.notes.map((n) => [n.id, n]));
   let deleted = next.deleted;
   const stamp = <T extends { id: string; updatedAt?: string }>(list: T[], prev: Map<string, T>): T[] =>
     list.map((x) => (prev.get(x.id) === x ? x : { ...x, updatedAt: now }));
   const items = next.items === state.items ? next.items : stamp(next.items, prevItems);
   const areas = next.areas === state.areas ? next.areas : stamp(next.areas, prevAreas);
-  const keep = new Set([...items.map((i) => i.id), ...areas.map((a) => a.id)]);
-  for (const id of [...prevItems.keys(), ...prevAreas.keys()]) if (!keep.has(id)) deleted = { ...deleted, [id]: now };
+  const notes = next.notes === state.notes ? next.notes : stamp(next.notes, prevNotes);
+  const keep = new Set([...items.map((i) => i.id), ...areas.map((a) => a.id), ...notes.map((n) => n.id)]);
+  for (const id of [...prevItems.keys(), ...prevAreas.keys(), ...prevNotes.keys()]) if (!keep.has(id)) deleted = { ...deleted, [id]: now };
   commit({
     ...next,
     items,
     areas,
+    notes,
     deleted,
     settingsUpdatedAt: next.settings === state.settings ? next.settingsUpdatedAt : now,
   });
@@ -253,7 +258,19 @@ export const actions = {
   },
   /** Put back items, areas and history from before an action (Undo). */
   restore(before: State) {
-    set({ ...state, items: before.items.map((i) => ({ ...i })), areas: before.areas.map((a) => ({ ...a })), history: before.history, timer: before.timer });
+    set({ ...state, items: before.items.map((i) => ({ ...i })), notes: before.notes.map((n) => ({ ...n })), areas: before.areas.map((a) => ({ ...a })), history: before.history, timer: before.timer });
+  },
+  /** Create an empty note and return its id. */
+  addNote(): string {
+    const id = newId();
+    set({ ...state, notes: [{ id, title: '', body: '', pinned: false, createdAt: new Date().toISOString() }, ...state.notes] });
+    return id;
+  },
+  updateNote(id: string, patch: Partial<Note>) {
+    set({ ...state, notes: state.notes.map((n) => (n.id === id ? { ...n, ...patch } : n)) });
+  },
+  deleteNote(id: string) {
+    set({ ...state, notes: state.notes.filter((n) => n.id !== id) });
   },
   updateSettings(patch: Partial<Settings>) {
     set({ ...state, settings: { ...state.settings, ...patch } });

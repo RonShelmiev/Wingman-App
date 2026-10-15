@@ -9,7 +9,7 @@ const item = (id: string, updatedAt: string, over: Partial<Item> = {}): Item => 
   repeat: { type: 'none' }, done: false, doneDates: [], createdAt: T(0), updatedAt, ...over,
 });
 const base = (over: Partial<State> = {}): State => ({
-  items: [], areas: [{ id: 'work', name: 'Work', color: '#000', updatedAt: T(0) }],
+  items: [], notes: [], areas: [{ id: 'work', name: 'Work', color: '#000', updatedAt: T(0) }],
   settings: { pushEnabled: true, emailEnabled: false, morningBrief: '07:30', eveningRecap: '21:00', quietStart: '22:00', quietEnd: '07:00', dayStart: '08:00', dayEnd: '21:00', bufferMin: 15, name: '', email: '', theme: 'system', language: 'en', weekStart: 1, workDays: [1, 2, 3, 4, 5], onboarded: true },
   fired: {}, snoozes: {}, history: [], timer: null, deleted: {}, settingsUpdatedAt: T(0), historyClearedAt: null, sync: null, ...over,
 });
@@ -76,5 +76,16 @@ describe('codes, encryption and backups', () => {
     const data = readBackup(JSON.stringify(makeBackup(s)));
     expect(fingerprint(data)).toBe(fingerprint(toSynced(s)));
     expect(() => readBackup('{"hello":1}')).toThrow('not a Wingman backup');
+  });
+});
+
+describe('notes', () => {
+  const note = (id: string, updatedAt: string, body: string) => ({ id, title: '', body, pinned: false, createdAt: T(0), updatedAt });
+  it('merge like items and survive old copies without notes', () => {
+    const phone = base({ notes: [note('n1', T(1), 'phone'), note('n2', T(1), 'two')] });
+    const laptop = base({ notes: [note('n1', T(2), 'laptop')], deleted: { n2: T(3) } });
+    expect(merge(phone, toSynced(laptop), NOW).notes.map((n) => n.body)).toEqual(['laptop']);
+    const old = { ...toSynced(base()), notes: undefined };
+    expect(merge(phone, old, NOW).notes).toHaveLength(2);
   });
 });

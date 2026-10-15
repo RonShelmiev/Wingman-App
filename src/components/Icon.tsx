@@ -15,6 +15,8 @@ const PATHS: Record<string, ReactElement> = {
   right: <path d="M9 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />,
   close: <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />,
   sparkle: <path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5L18 18M6 18l2.5-2.5M15.5 8.5L18 6" strokeLinecap="round" />,
+  pin: <path d="M9 3h6l-1 6 4 4H6l4-4zM12 13v8" strokeLinecap="round" strokeLinejoin="round" />,
+  note: <><path d="M6 3h9l4 4v14H6z" strokeLinejoin="round" /><path d="M9 11h7M9 15h7M9 7h3" strokeLinecap="round" /></>,
   trash: <path d="M4 7h16M9 7V4.5h6V7M6.5 7l1 13h9l1-13" strokeLinecap="round" strokeLinejoin="round" />,
 };
 

@@ -364,6 +364,24 @@ export const HE: Record<string, string> = {
 
   'still ringing': 'עדיין מצלצל',
 
+  // Notes
+  'Notes': 'פתקים',
+  'Note': 'פתק',
+  '{n} note': 'פתק אחד',
+  '{n} notes': '{n} פתקים',
+  'New note': 'פתק חדש',
+  'Search notes': 'חיפוש בפתקים',
+  'Notes are for anything without a date: ideas, lists, things to remember.': 'פתקים הם לכל מה שאין לו תאריך: רעיונות, רשימות, דברים שחשוב לזכור.',
+  'Write your first note': 'כתיבת הפתק הראשון',
+  'No notes match “{q}”.': 'אין פתקים שמתאימים ל„{q}”.',
+  'Pinned': 'מוצמדים',
+  'Other notes': 'שאר הפתקים',
+  'Empty note': 'פתק ריק',
+  'Pin': 'הצמדה',
+  'Unpin': 'ביטול הצמדה',
+  'Delete note': 'מחיקת הפתק',
+  'Write anything…': 'כותבים כל דבר…',
+
   // Updates
   'A new version of Wingman is ready.': 'גרסה חדשה של Wingman מוכנה.',
   'Refresh': 'רענון',

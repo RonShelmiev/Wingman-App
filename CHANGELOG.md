@@ -2,6 +2,18 @@
 
 Every push is documented here: what changed and why. Newest first.
 
+## 2026-10-15 — Notes
+
+**Added**
+- **Notes** tab (פתקים): plain notes with no date or time, for ideas, lists, phone numbers, anything to remember.
+- Write a title (optional) and any text; it **saves as you type**. An empty new note disappears when closed.
+- **Pin** important notes to the top, **search** across all notes, **delete with Undo**.
+- On the Notes tab the **+** button makes a new note.
+- Notes sync between devices (end-to-end encrypted) and are included in backups, like everything else. Fully in Hebrew; each note follows the direction of its own text.
+
+**Verified**
+- `npm test` 64/64 (new: notes merge between devices, including older copies without notes; Hebrew coverage). Browser run in Hebrew: create, empty note discarded, pin, search, delete + Undo, still there after reload; the bottom bar (now 5 tabs + the + button) fits on a 360 px wide phone.
+
 ## 2026-10-15 — Alarms that keep ringing
 
 **Why:** on iPhone an alarm from Wingman only appeared as a notification; the alarm screen showed only after tapping it. iPhones allow full-screen alarms over the lock screen only for native App Store apps, so a web app can't do that. These changes make Wingman's alarm notifications much harder to miss.

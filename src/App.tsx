@@ -9,6 +9,8 @@ import { Icon, AppMark } from './components/Icon';
 import { Celebration, ScopeDialog, UndoBar, UpdateBar } from './components/Overlays';
 import { Recap } from './screens/Recap';
 import { Welcome } from './screens/Welcome';
+import { Notes } from './screens/Notes';
+import { NoteEditor } from './screens/NoteEditor';
 import { t, tn } from './lib/i18n';
 import { prettyDate } from './lib/dates';
 import { Today } from './screens/Today';
@@ -19,10 +21,10 @@ import { QuickAdd } from './screens/QuickAdd';
 import { Plan } from './screens/Plan';
 import { AlarmOverlay } from './screens/AlarmOverlay';
 
-type Tab = 'today' | 'week' | 'reminders' | 'settings';
+type Tab = 'today' | 'week' | 'reminders' | 'notes' | 'settings';
 interface Ring { item: Item; date: string; key: string; test?: boolean }
 interface Toast { id: string; title: string; body: string; action?: { label: string; run: () => void } }
-type SheetState = { type: 'add' } | { type: 'edit'; item: Item; date: string } | { type: 'plan' } | { type: 'recap' } | null;
+type SheetState = { type: 'add' } | { type: 'edit'; item: Item; date: string } | { type: 'plan' } | { type: 'recap' } | { type: 'note'; id: string } | null;
 
 export function App() {
   const [now, setNow] = useState(() => new Date());
@@ -170,7 +172,8 @@ export function App() {
   };
 
   const closeSheet = useCallback(() => setSheet(null), []);
-  const nav: [Tab, string, string][] = [['today', t('Today'), 'today'], ['week', t('Week'), 'week'], ['reminders', t('Reminders'), 'bell'], ['settings', t('Settings'), 'settings']];
+  const nav: [Tab, string, string][] = [['today', t('Today'), 'today'], ['week', t('Week'), 'week'], ['reminders', t('Reminders'), 'bell'], ['notes', t('Notes'), 'note'], ['settings', t('Settings'), 'settings']];
+  const newNote = () => setSheet({ type: 'note', id: actions.addNote() });
   const onEdit = (item: Item, date: string) => setSheet({ type: 'edit', item, date });
 
   if (!onboarded) return <><Welcome /><UpdateBar /></>;
@@ -180,13 +183,14 @@ export function App() {
       {tab === 'today' && <Today now={now} today={today} onEdit={onEdit} onAdd={() => setSheet({ type: 'add' })} onPlan={() => setSheet({ type: 'plan' })} onSettings={() => setTab('settings')} />}
       {tab === 'week' && <Week today={today} onEdit={onEdit} />}
       {tab === 'reminders' && <Reminders today={today} onEdit={onEdit} />}
+      {tab === 'notes' && <Notes today={today} onOpen={(id) => setSheet({ type: 'note', id })} onNew={newNote} />}
       {tab === 'settings' && <Settings today={today} onTestAlarm={testAlarm} />}
 
       <nav className="nav" aria-label={t('Main')}>
         {nav.slice(0, 2).map(([id, label, icon]) => (
           <button key={id} aria-current={tab === id ? 'page' : undefined} onClick={() => setTab(id)}><Icon name={icon} width={tab === id ? 2 : 1.8} />{label}</button>
         ))}
-        <button className="fab" aria-label={t('Add task, event or reminder')} onClick={() => setSheet({ type: 'add' })}><Icon name="plus" size={26} width={2.4} /></button>
+        <button className="fab" aria-label={tab === 'notes' ? t('New note') : t('Add task, event or reminder')} onClick={() => (tab === 'notes' ? newNote() : setSheet({ type: 'add' }))}><Icon name="plus" size={26} width={2.4} /></button>
         {nav.slice(2).map(([id, label, icon]) => (
           <button key={id} aria-current={tab === id ? 'page' : undefined} onClick={() => setTab(id)}><Icon name={icon} width={tab === id ? 2 : 1.8} />{label}</button>
         ))}
@@ -196,6 +200,7 @@ export function App() {
       {sheet?.type === 'edit' && <QuickAdd key={sheet.item.id + sheet.date} editing={sheet.item} occurrence={sheet.date} today={today} onClose={closeSheet} />}
       {sheet?.type === 'plan' && <Plan today={today} now={now} onClose={closeSheet} />}
       {sheet?.type === 'recap' && <Recap today={today} onClose={closeSheet} />}
+      {sheet?.type === 'note' && <NoteEditor key={sheet.id} id={sheet.id} onClose={closeSheet} />}
 
       <UpdateBar />
       <UndoBar />

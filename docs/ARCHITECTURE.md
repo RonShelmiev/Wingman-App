@@ -55,6 +55,10 @@ cron-job.org ──every minute──▶ /api/tick ─────────�
 - Dead subscriptions (HTTP 404/410 from the push service) are cleared automatically; devices unseen for 60 days expire.
 - The app ignores reminders more than 10 minutes old when it reopens (the server already delivered them), so alarms never ring late.
 
+## Notes
+
+`State.notes` holds plain notes (`title`, `body`, `pinned`). They get `updatedAt` stamps and deletion tombstones in the store like items, so they merge between devices and go into backups. UI: `screens/Notes.tsx` (list, search, pinned) and `screens/NoteEditor.tsx` (saves on every keystroke).
+
 ## Sync & backup
 
 - **Sync code**: 32 characters (160 random bits), created on the device. The server stores only `SHA-256("wingman-vault:"+code)` as the id and an AES-GCM blob encrypted with a key derived from the code. It cannot read your data. Anyone with the code can, so it's shown masked.

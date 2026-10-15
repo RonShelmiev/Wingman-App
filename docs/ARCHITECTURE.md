@@ -35,7 +35,7 @@ It also sends the **morning brief** and **evening recap** once a day at the time
 ## Background delivery (server)
 
 ```
-phone (Wingman app) ──POST /api/sync──▶ Vercel function ──▶ Upstash Redis
+phone (Wingman app) ──POST /api/sync──▶ Vercel function ──▶ Redis
                                                      ▲
 cron-job.org ──every minute──▶ /api/tick ────────────┘──▶ Web Push service ──▶ phone notification
                                                        └──▶ Resend (email, optional)
@@ -51,7 +51,7 @@ cron-job.org ──every minute──▶ /api/tick ─────────�
 | `GET/PUT /api/vault` | Encrypted sync copy. `id` = SHA-256 of the sync code; `PUT` only succeeds if the version matches (compare-and-set via a Redis Lua script), otherwise 409 with the current copy. |
 
 - Devices are identified by a random 24-byte ID generated on the phone (works as a bearer secret); no accounts.
-- Logic is in `server/core.ts` behind a `Store` interface (`RedisStore` in production, `MemoryStore` in tests).
+- Logic is in `server/core.ts` behind a `Store` interface: `RedisStore` (Upstash REST, `KV_REST_API_*` / `UPSTASH_REDIS_REST_*`) or `UrlRedisStore` (plain `REDIS_URL`, e.g. Vercel's "Redis" integration) in production, `MemoryStore` in tests and `npm run dev`.
 - Dead subscriptions (HTTP 404/410 from the push service) are cleared automatically; devices unseen for 60 days expire.
 - The app ignores reminders more than 10 minutes old when it reopens (the server already delivered them), so alarms never ring late.
 
@@ -83,7 +83,7 @@ Vercel redeploys on every push. Each build gets an id (`__BUILD_ID__`) and write
 - The server schedules 14 days ahead; open the app at least once every two weeks.
 - A web alarm can't override the phone's silent switch the way the built-in Clock app can.
 - Sync merges whole items: if the same item is edited on two devices before they sync, the later edit wins.
-- The Redis compare-and-set script is tested only through the in-memory store here; it runs for real on Upstash after deployment.
+- The Redis compare-and-set script is tested against a real Redis through `UrlRedisStore` (`TEST_REDIS_URL=redis://… npm test`); the Upstash REST path runs it for real only after deployment.
 
 ## Tests
 

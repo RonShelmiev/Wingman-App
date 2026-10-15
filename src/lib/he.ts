@@ -75,6 +75,9 @@ export const HE: Record<string, string> = {
   'Every {day}': 'כל {day}',
   'Every {n} days': 'כל {n} ימים',
   'Work days': 'ימי עבודה',
+  'Custom days…': 'ימים לבחירה…',
+  'Repeat on': 'חוזר בימים',
+  'Pick at least one day.': 'בחרו לפחות יום אחד.',
   'Monthly on the {nth}': 'כל חודש ב-{nth}',
   'Every year on {date}': 'כל שנה ב-{date}',
   'Alarm': 'שעון מעורר',
@@ -152,6 +155,7 @@ export const HE: Record<string, string> = {
   'Just type it — Wingman figures out the rest': 'פשוט כותבים — Wingman מבין את השאר',
   'Saves as': 'יישמר בתור',
   'Date': 'תאריך',
+  'Start date': 'תאריך התחלה',
   'Time': 'שעה',
   'How long': 'משך',
   'You usually need {d} for this': 'בדרך כלל זה לוקח לך {d}',
@@ -210,6 +214,7 @@ export const HE: Record<string, string> = {
 
   // Alarm
   'ALARM': 'שעון מעורר',
+  'Tap anywhere to hear the alarm': 'הקישו במסך כדי לשמוע את השעון המעורר',
   'set for {time}': 'נקבע ל-{time}',
   '5 min': '5 דק׳',
   'Snooze 10': 'נודניק 10',

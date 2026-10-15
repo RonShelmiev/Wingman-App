@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { Item } from './types';
 import { dueReminders, inWindow, isDoneOn, itemsOn, nextOccurrence, occursOn, overdueItems } from './schedule';
 import { planDay } from './planner';
+import { daysLabel } from '../components/ItemRow';
 
 const item = (over: Partial<Item>): Item => ({
   id: over.id ?? 'x', title: 'T', kind: 'task', areaId: 'work', date: '2026-10-11', start: null, durationMin: 30,
@@ -80,5 +81,17 @@ describe('planDay', () => {
   it('reports tasks that do not fit', () => {
     const { unplaced } = planDay([item({ start: '08:00', durationMin: 780 })], [item({ id: 'big', durationMin: 120 })], opts);
     expect(unplaced.map((i) => i.id)).toEqual(['big']);
+  });
+});
+
+describe('chosen days', () => {
+  it('occurs only on the picked days and labels them', () => {
+    const item: Item = { id: 'g', title: 'Gym', kind: 'task', areaId: 'health', date: '2026-10-11', start: '07:00', durationMin: 60, remindOffsetMin: 0, channel: 'push', repeat: { type: 'weekdays', days: [0, 1, 2, 3, 4] }, done: false, doneDates: [], createdAt: '' };
+    // Oct 11 2026 is a Sunday.
+    expect(['2026-10-11', '2026-10-15', '2026-10-16', '2026-10-17', '2026-10-18'].map((d) => occursOn(item, d))).toEqual([true, true, false, false, true]);
+    expect(daysLabel([0, 1, 2, 3, 4])).toBe('Sun–Thu');
+    expect(daysLabel([5, 6, 0])).toBe('Fri–Sun');
+    expect(daysLabel([1, 3, 5])).toBe('Mon, Wed, Fri');
+    expect(daysLabel([0, 1, 2, 3, 4, 5, 6])).toBe('Daily');
   });
 });

@@ -62,4 +62,14 @@ describe('parseQuick', () => {
     expect(parseQuick('Standup weekdays at 9:30', NOW)).toMatchObject({ title: 'Standup', start: '09:30', repeat: { type: 'weekdays' } });
     expect(parseQuick('Renew car insurance every year', NOW).repeat).toEqual({ type: 'yearly' });
   });
+
+  it('repeats on chosen days', () => {
+    expect(parseQuick('Gym sunday to thursday at 7am', NOW)).toMatchObject({ title: 'Gym', start: '07:00', date: '2026-10-11', repeat: { type: 'weekdays', days: [0, 1, 2, 3, 4] } });
+    expect(parseQuick('Standup mon-fri 9:30', NOW)).toMatchObject({ title: 'Standup', start: '09:30', repeat: { type: 'weekdays', days: [1, 2, 3, 4, 5] } });
+    expect(parseQuick('Long run fri through sun', NOW).repeat).toEqual({ type: 'weekdays', days: [0, 5, 6] });
+    expect(parseQuick('Piano every mon, wed and fri at 5pm', NOW)).toMatchObject({ title: 'Piano', start: '17:00', repeat: { type: 'weekdays', days: [1, 3, 5] } });
+    // A single day stays a plain weekly repeat or date.
+    expect(parseQuick('Call mom every sunday 6pm', NOW).repeat).toEqual({ type: 'weekly', weekday: 0 });
+    expect(parseQuick('Dentist Thursday 4:30pm', NOW).repeat).toEqual({ type: 'none' });
+  });
 });

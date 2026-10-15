@@ -15,6 +15,52 @@ Every push is documented here: what changed and why. Newest first.
 **Verified**
 - `npm test` 60/60 (new: repeat timing, repeats sent under the alarm's tag, Stop ends repeats, Snooze cancels and re-arms them, Hebrew time direction). Browser: alarm link opened 40 minutes late shows the ringing screen in Hebrew; "Stop & mark done" closes it; the same link afterwards does nothing.
 - Not verifiable here: how iOS displays repeated notifications and action buttons on a real iPhone.
+## 2026-10-13 — No date to pick for day-based repeats
+
+**Changed**
+- Choosing **Every day**, **Work days** or **Custom days** hides the Date field: those repeats already say which days, so they simply start today (editing keeps the series' own start). The time field takes the full row.
+- For **Every week** and **Every 2/3 days** the field is now called **Start date**; **Every month** and **Every year** keep **Date** (it's the day of the month / the birthday).
+- Picking any repeat on an item without a date now starts it today instead of quietly dropping the repeat.
+
+**Verified**
+- `npm test` 61/61, typecheck and build clean.
+
+## 2026-10-13 — Repeat on the days you choose
+
+**Added**
+- **Repeat → Custom days…** in the add/edit sheet: tap the days you want (e.g. Sunday–Thursday, or Mon/Wed/Fri). Days are listed from your week start.
+- Quick add understands chosen days: "Gym sunday to thursday at 7am", "Standup mon-fri 9:30", "Piano every mon, wed and fri", and in Hebrew "חדר כושר ראשון עד חמישי", "מראשון עד חמישי", "א׳-ה׳", "בימים שני ורביעי".
+- Repeat labels show the actual days: "Sun–Thu" / "א׳–ה׳", "Mon, Wed, Fri", instead of a generic "Work days".
+
+**Fixed**
+- Editing a repeating item's other fields could overwrite a changed day choice with the old one; the series now keeps the old repeat only when the repeat itself wasn't touched.
+
+**Verified**
+- `npm test` 61/61 (new: English and Hebrew day ranges/lists, scheduling on chosen days, labels), typecheck and build clean.
+
+## 2026-10-13 — Alarm sound + delivery diagnostics
+
+**Fixed**
+- Opening Wingman onto a waiting alarm showed it silently (browsers block sound until the first tap). The alarm screen now says "Tap anywhere to hear the alarm" and any tap starts the sound.
+- On iPhone (iOS 17+), the alarm sound asks for "playback" audio, so the silent switch no longer mutes it while Wingman is open.
+
+**Added**
+- Server logs for troubleshooting background delivery (no personal data): each sync logs how many reminders and which push service the device uses (or none); each tick with something due logs sent / failed / no-subscription counts; failed pushes log the push service's status code.
+
+**Verified**
+- `npm test` 58/58, typecheck and build clean.
+
+## 2026-10-13 — Works with Vercel's "Redis" database too
+
+**Added**
+- The server now also accepts a plain `REDIS_URL` (what Vercel's **Redis** integration provides), not only Upstash's REST variables. Before, connecting "Redis" instead of "Upstash for Redis" left the server without storage: no reminders with the app closed and no sync.
+- `server/urlRedisStore.ts`: same data layout as the Upstash store, over a normal Redis connection (reused between requests).
+
+**Changed**
+- Hosting guide: Step 0 no longer mentions the old `claude/wingman-designs` branch (everything is on `main`); Step 3 says either database works.
+
+**Verified**
+- `npm test` 58/58 (+2 real-Redis tests that run when `TEST_REDIS_URL` is set). Ran those against a local Redis 7.4: schedule → send once → re-sync keeps the sent copy → snooze → ack, and the vault compare-and-set (first real run of that Lua script). The API routes report `storage: true` and save/load the vault with `REDIS_URL` set. Build clean.
 
 ## 2026-10-11 — "Update available" bar
 

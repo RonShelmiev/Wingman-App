@@ -43,6 +43,13 @@ export function at(date: string, time: string): Date {
   return d;
 }
 
+/** Weekdays from `from` to `to` inclusive (0 = Sunday), wrapping past Saturday: Sun–Thu → [0..4], Fri–Sun → [5, 6, 0]. */
+export function dayRange(from: number, to: number): number[] {
+  const out = [from];
+  for (let d = from; d !== to; ) out.push((d = (d + 1) % 7));
+  return out.sort((a, b) => a - b);
+}
+
 /** First day of the week containing `s` (weekStart: 0 = Sunday, 1 = Monday). */
 export function startOfWeek(s: string, weekStart: 0 | 1 = 1): string {
   const dow = parseDate(s).getDay();
@@ -64,6 +71,7 @@ const L = () => (getLang() === 'he' ? HEB : EN);
 export const dowShort = (s: string) => L().dow[parseDate(s).getDay()];
 export const dowLong = (s: string) => L().dowLong[parseDate(s).getDay()];
 export const weekdayName = (n: number) => L().dowLong[n];
+export const weekdayShort = (n: number) => L().dow[n];
 export const monthShort = (s: string) => L().mon[parseDate(s).getMonth()];
 export const dayNum = (s: string) => parseDate(s).getDate();
 /** "Oct 20" / "20 באוקטובר" */

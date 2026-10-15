@@ -1,7 +1,7 @@
 // Hebrew Quick add: "רופא שיניים ביום חמישי ב-16:30 תזכיר לי יום לפני".
 // JavaScript's \b doesn't see Hebrew letters, so phrases are bounded by spaces/punctuation explicitly.
 import type { Parsed } from './parse';
-import { addDays, parseDate, toDateStr } from './dates';
+import { addDays, dayRange, parseDate, toDateStr } from './dates';
 
 const S = '(?<=^|[\\s,.!?()\\-–])';
 const E = '(?=$|[\\s,.!?()\\-–])';
@@ -9,6 +9,11 @@ const re = (body: string) => new RegExp(`${S}(?:${body})${E}`);
 
 const DAYS = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי'];
 const DAY = `(${DAYS.join('|')})`;
+/** All seven days, Saturday included (index = weekday). */
+const ALL_DAYS = [...DAYS, 'שבת'];
+const ANY_DAY = `(${ALL_DAYS.join('|')})`;
+/** Day letters as in א׳–ה׳ (ש = Saturday). */
+const DAY_LETTERS = 'אבגדהוש';
 const MONTHS = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
 const MONTH = `(${MONTHS.join('|')}|מרס)`;
 const monthIndex = (m: string) => (m === 'מרס' ? 2 : MONTHS.indexOf(m));
@@ -92,6 +97,17 @@ export function parseHebrew(input: string, now: Date, workDays: number[]): Parse
   // Repeats
   let defaultTime: string | null = null;
   take(re('כל יום (?:חול|עבודה)|בימי (?:חול|עבודה)|בימי השבוע'), () => (out.repeat = { type: 'weekdays', days: workDays }));
+  // Chosen days: "ראשון עד חמישי", "מראשון עד חמישי", "א׳-ה׳", "בימים שני ורביעי"
+  take(re(`(?:כל |בימים |בימי |ימים )?(?:מ|מיום |יום )?${ANY_DAY}\\s*(?:עד|-|–)\\s*(?:יום )?${ANY_DAY}`), (m) => {
+    out.repeat = { type: 'weekdays', days: dayRange(ALL_DAYS.indexOf(m[1]), ALL_DAYS.indexOf(m[2])) };
+  }) ||
+    take(re(`([${DAY_LETTERS}])['׳]\\s*[-–]\\s*([${DAY_LETTERS}])['׳]`), (m) => {
+      out.repeat = { type: 'weekdays', days: dayRange(DAY_LETTERS.indexOf(m[1]), DAY_LETTERS.indexOf(m[2])) };
+    }) ||
+    take(re(`(?:כל |בימים |בימי )(?:יום )?${ANY_DAY}(?:(?:\\s*,\\s*|\\s+)ו?${ANY_DAY})+`), (m) => {
+      const days = ALL_DAYS.map((d, i) => (new RegExp(`(?:^|[\\s,ו])${d}(?=$|[\\s,])`).test(m[0]) ? i : -1)).filter((i) => i >= 0);
+      out.repeat = { type: 'weekdays', days };
+    });
   take(re(`כל (?:יום )?${DAY}|כל שבת`), (m) => {
     const wd = m[1] ? DAYS.indexOf(m[1]) : 6;
     out.repeat = { type: 'weekly', weekday: wd };

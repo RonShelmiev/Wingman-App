@@ -4,7 +4,7 @@ import { actions, useStore } from '../lib/store';
 import { parseQuick } from '../lib/parse';
 import { durationForTitle } from '../lib/insights';
 import { isDoneOn, isRepeating } from '../lib/schedule';
-import { formatDuration, parseDate } from '../lib/dates';
+import { formatDuration, parseDate, weekdayName, weekdayShort } from '../lib/dates';
 import { moveToTomorrow, remove, saveEdit } from '../lib/itemActions';
 import { getLang, t } from '../lib/i18n';
 import { Sheet } from '../components/Sheet';
@@ -18,21 +18,28 @@ interface Props {
   onClose: () => void;
 }
 
-type RepeatKey = 'none' | 'daily' | 'weekdays' | 'weekly' | 'every2' | 'every3' | 'monthly' | 'yearly';
+type RepeatKey = 'none' | 'daily' | 'weekdays' | 'days' | 'weekly' | 'every2' | 'every3' | 'monthly' | 'yearly';
 const REMIND_OPTIONS: [string, number | null][] = [['No reminder', null], ['At the time', 0], ['5 min before', 5], ['10 min before', 10], ['15 min before', 15], ['30 min before', 30], ['1 hour before', 60], ['2 hours before', 120], ['1 day before', 1440]];
 const DURATIONS = [15, 30, 45, 60, 90, 120, 180, 240];
 const CHANNELS: [Channel, string][] = [['push', 'Push'], ['email', 'Email'], ['alarm', 'Alarm'], ['silent', 'Silent']];
 const KINDS: [Kind, string][] = [['task', 'Task'], ['event', 'Event'], ['reminder', 'Reminder']];
 
-const repeatKey = (r: Repeat): RepeatKey => (r.type === 'everyNDays' ? (r.n === 2 ? 'every2' : 'every3') : r.type);
+const sameDays = (a: number[], b: number[]) => a.length === b.length && [...a].sort().join() === [...b].sort().join();
 
-function toRepeat(k: RepeatKey, date: string, workDays: number[]): Repeat {
+/** "Work days" when the days match Settings, "Custom days" for any other choice. */
+const repeatKey = (r: Repeat, workDays: number[]): RepeatKey =>
+  r.type === 'everyNDays' ? (r.n === 2 ? 'every2' : 'every3')
+  : r.type === 'weekdays' ? (sameDays(r.days ?? [1, 2, 3, 4, 5], workDays) ? 'weekdays' : 'days')
+  : r.type;
+
+function toRepeat(k: RepeatKey, date: string, workDays: number[], days: number[]): Repeat {
   switch (k) {
     case 'daily': return { type: 'daily' };
     case 'weekly': return { type: 'weekly', weekday: parseDate(date).getDay() };
     case 'every2': return { type: 'everyNDays', n: 2 };
     case 'every3': return { type: 'everyNDays', n: 3 };
     case 'weekdays': return { type: 'weekdays', days: workDays };
+    case 'days': return { type: 'weekdays', days: [...days].sort((a, b) => a - b) };
     case 'monthly': return { type: 'monthly' };
     case 'yearly': return { type: 'yearly' };
     default: return { type: 'none' };
@@ -44,6 +51,7 @@ export function QuickAdd({ editing, occurrence, today, onClose }: Props) {
   const history = useStore((s) => s.history);
   const timer = useStore((s) => s.timer);
   const workDays = useStore((s) => s.settings.workDays);
+  const weekStart = useStore((s) => s.settings.weekStart);
   const occ = occurrence ?? editing?.date ?? today;
   const [learnedHint, setLearnedHint] = useState<string | null>(null);
   const [text, setText] = useState('');
@@ -57,7 +65,9 @@ export function QuickAdd({ editing, occurrence, today, onClose }: Props) {
     durationMin: editing?.durationMin ?? 30,
     remindOffsetMin: editing?.remindOffsetMin ?? (null as number | null),
     channel: (editing?.channel ?? 'push') as Channel,
-    repeat: editing ? repeatKey(editing.repeat) : ('none' as RepeatKey),
+    repeat: editing ? repeatKey(editing.repeat, workDays) : ('none' as RepeatKey),
+    /** Days for "Custom days" (0 = Sunday). */
+    days: editing?.repeat.type === 'weekdays' ? editing.repeat.days ?? [1, 2, 3, 4, 5] : workDays,
     areaId: editing?.areaId ?? areas[0]?.id ?? 'work',
   }));
 
@@ -81,7 +91,8 @@ export function QuickAdd({ editing, occurrence, today, onClose }: Props) {
       maybe('durationMin', p.durationMin ?? learned ?? 30);
       maybe('remindOffsetMin', p.remindOffsetMin ?? (p.kind === 'reminder' ? 0 : null));
       maybe('channel', p.channel ?? 'push');
-      maybe('repeat', repeatKey(p.repeat));
+      maybe('repeat', repeatKey(p.repeat, workDays));
+      if (p.repeat.type === 'weekdays' && p.repeat.days) maybe('days', p.repeat.days);
       if (p.areaGuess && areas.some((a) => a.id === p.areaGuess)) maybe('areaId', p.areaGuess);
       return next;
     });
@@ -90,20 +101,23 @@ export function QuickAdd({ editing, occurrence, today, onClose }: Props) {
   const needsTime = f.channel === 'alarm' && !f.start;
   // Timing a repeating item counts for the tapped occurrence.
   const focusDate = editing && !isRepeating(editing) && editing.date ? editing.date : occ;
-  const canSave = f.title.trim().length > 0 && !needsTime;
+  // These repeats already say which days, so there's no date to pick: they start today (or keep the series start).
+  const dateless = f.repeat === 'daily' || f.repeat === 'weekdays' || f.repeat === 'days';
+  const canSave = f.title.trim().length > 0 && !needsTime && !(f.repeat === 'days' && !f.days.length);
 
   const save = async () => {
     if (!canSave) return;
+    const date = f.date || (f.repeat !== 'none' ? today : '');
     const data = {
       title: f.title.trim(),
       kind: f.kind,
       areaId: f.areaId,
-      date: f.date || null,
+      date: date || null,
       start: f.start || null,
       durationMin: f.durationMin,
       remindOffsetMin: f.channel === 'alarm' ? (f.remindOffsetMin ?? 0) : f.remindOffsetMin,
       channel: f.channel,
-      repeat: f.date ? toRepeat(f.repeat, f.date, workDays) : ({ type: 'none' } as Repeat),
+      repeat: date ? toRepeat(f.repeat, date, workDays, f.days) : ({ type: 'none' } as Repeat),
     };
     if (!editing) {
       actions.addItem(data);
@@ -112,7 +126,7 @@ export function QuickAdd({ editing, occurrence, today, onClose }: Props) {
     // Unchanged date on a repeating item keeps the series where it started.
     if (isRepeating(editing) && data.date === occ) {
       data.date = editing.date;
-      if (data.repeat.type === editing.repeat.type) data.repeat = editing.repeat;
+      if (repeatKey(data.repeat, workDays) === repeatKey(editing.repeat, workDays) && !touched.has('days')) data.repeat = editing.repeat;
     }
     if (await saveEdit(editing, occ, data)) onClose();
   };
@@ -150,11 +164,13 @@ export function QuickAdd({ editing, occurrence, today, onClose }: Props) {
       )}
 
       <div className="inline-inputs">
-        <div className="field">
-          <label htmlFor="qa-date">{t('Date')}</label>
-          <input id="qa-date" type="date" className="input" value={f.date ?? ''} onChange={(e) => set('date', e.target.value)} />
-        </div>
-        <div className="field">
+        {!dateless && (
+          <div className="field">
+            <label htmlFor="qa-date">{f.repeat === 'weekly' || f.repeat === 'every2' || f.repeat === 'every3' ? t('Start date') : t('Date')}</label>
+            <input id="qa-date" type="date" className="input" value={f.date ?? ''} onChange={(e) => set('date', e.target.value)} />
+          </div>
+        )}
+        <div className="field" style={dateless ? { gridColumn: '1 / -1' } : undefined}>
           <label htmlFor="qa-time">{t('Time')} {f.kind === 'task' && <span>({t('optional')})</span>}</label>
           <input id="qa-time" type="time" className="input" value={f.start} onChange={(e) => set('start', e.target.value)} />
         </div>
@@ -176,6 +192,7 @@ export function QuickAdd({ editing, occurrence, today, onClose }: Props) {
             <option value="none">{t('Never')}</option>
             <option value="daily">{t('Every day')}</option>
             <option value="weekdays">{t('Work days')}</option>
+            <option value="days">{t('Custom days…')}</option>
             <option value="weekly">{t('Every week')}</option>
             <option value="every2">{t('Every 2 days')}</option>
             <option value="every3">{t('Every 3 days')}</option>
@@ -184,6 +201,21 @@ export function QuickAdd({ editing, occurrence, today, onClose }: Props) {
           </select>
         </div>
       </div>
+
+      {f.repeat === 'days' && (
+        <div className="field">
+          <span className="label" id="qa-days">{t('Repeat on')}</span>
+          <div className="chips" role="group" aria-labelledby="qa-days">
+            {[0, 1, 2, 3, 4, 5, 6].map((k) => (k + weekStart) % 7).map((d) => (
+              <button key={d} className="chip" aria-pressed={f.days.includes(d)} aria-label={weekdayName(d)}
+                onClick={() => set('days', f.days.includes(d) ? f.days.filter((x) => x !== d) : [...f.days, d])}>
+                {weekdayShort(d)}
+              </button>
+            ))}
+          </div>
+          {!f.days.length && <span style={{ fontSize: 13, color: 'var(--danger)' }}>{t('Pick at least one day.')}</span>}
+        </div>
+      )}
 
       <div className="field">
         <label htmlFor="qa-rem">{t('Remind me')}</label>

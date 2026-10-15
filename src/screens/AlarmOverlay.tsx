@@ -1,9 +1,10 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Area, Item } from '../lib/types';
 import { prettyDate, toTimeStr } from '../lib/dates';
 import { repeatLabel } from '../components/ItemRow';
 import { Icon } from '../components/Icon';
 import { t } from '../lib/i18n';
+import { soundBlocked, unlockAudio } from '../lib/notify';
 
 interface Props {
   item: Item;
@@ -18,13 +19,20 @@ interface Props {
 export function AlarmOverlay({ item, date, area, now, onSnooze, onStop, onDone }: Props) {
   const stopRef = useRef<HTMLButtonElement>(null);
   useEffect(() => stopRef.current?.focus(), []);
+  // Opened from a notification, the browser hasn't allowed sound yet: any tap turns it on.
+  const [muted, setMuted] = useState(soundBlocked);
+  useEffect(() => {
+    const id = window.setInterval(() => setMuted(soundBlocked()), 500);
+    return () => window.clearInterval(id);
+  }, []);
   const rep = repeatLabel(item);
   return (
-    <div className="alarm" role="alertdialog" aria-modal="true" aria-labelledby="alarm-title">
+    <div className="alarm" role="alertdialog" aria-modal="true" aria-labelledby="alarm-title" onPointerDown={unlockAudio}>
       <div className="halo" aria-hidden="true" />
       <span className="tag"><Icon name="alarm" size={18} width={2} />{t('ALARM')}</span>
       <span className="clock" dir="ltr">{toTimeStr(now)}</span>
       <span className="date">{prettyDate(date)}</span>
+      {muted && <button className="sound-hint" onClick={unlockAudio}>{t('Tap anywhere to hear the alarm')}</button>}
       <h1 id="alarm-title">{item.title}</h1>
       <span className="area-line">
         {area && <span className="dot" style={{ background: area.color }} />}

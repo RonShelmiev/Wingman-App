@@ -126,7 +126,7 @@ export async function handleAck(store: Store, deviceId: string, keys: string[]) 
 /** Send everything that's due. Called every minute by an external cron. */
 export async function processDue(store: Store, senders: Senders, now: number) {
   const due = await store.due(now, 200);
-  let sent = 0, stale = 0, emailed = 0, gone = 0;
+  let sent = 0, stale = 0, emailed = 0, gone = 0, failed = 0, noSubscription = 0;
   const deviceCache = new Map<string, Device | null>();
   for (const { deviceId, reminder } of due) {
     await store.removeReminder(deviceId, reminder.key);
@@ -142,15 +142,16 @@ export async function processDue(store: Store, senders: Senders, now: number) {
     if (device.subscription) {
       const res = await senders.push(device.subscription, { title: reminder.title, body: reminder.body, tag: baseKey(reminder.key), alarm: reminder.alarm, deviceId });
       if (res === 'ok') sent++;
+      if (res === 'error') failed++;
       if (res === 'gone') {
         gone++;
         device.subscription = null;
         await store.putDevice(deviceId, device);
       }
-    }
+    } else noSubscription++;
     if (reminder.email && device.email && senders.email) {
       if (await senders.email(device.email, reminder.title, `${reminder.body}\n\n— Wingman`)) emailed++;
     }
   }
-  return { due: due.length, sent, emailed, stale, gone };
+  return { due: due.length, sent, emailed, stale, gone, failed, noSubscription };
 }

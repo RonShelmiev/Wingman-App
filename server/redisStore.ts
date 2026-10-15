@@ -6,11 +6,11 @@ import type { ScheduledReminder } from './types.js';
 //   dev:<id>   JSON Device
 //   rem:<id>   hash  key -> JSON ScheduledReminder   (scheduled + "sent:" copies)
 //   due        sorted set  "<id>|<key>" scored by fireAt  (scheduled only)
-const DEVICE_TTL = 60 * 24 * 3600; // forget devices not seen for 60 days
-const VAULT_TTL = 400 * 24 * 3600; // keep synced data for a year after the last change
+export const DEVICE_TTL = 60 * 24 * 3600; // forget devices not seen for 60 days
+export const VAULT_TTL = 400 * 24 * 3600; // keep synced data for a year after the last change
 
 // Compare-and-set in one step, so two devices saving at once can't overwrite each other.
-const PUT_VAULT = `
+export const PUT_VAULT = `
 local cur = redis.call('GET', KEYS[1])
 local version = 0
 if cur then version = cjson.decode(cur).version end

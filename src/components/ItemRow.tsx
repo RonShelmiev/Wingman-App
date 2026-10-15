@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import type { Area, Item } from '../lib/types';
 import { isDoneOn, isRepeating } from '../lib/schedule';
-import { formatDuration, monthDay, weekdayName } from '../lib/dates';
+import { formatDuration, monthDay, weekdayName, weekdayShort } from '../lib/dates';
 import { getLang, isRtl, t } from '../lib/i18n';
 import { DoneCheck, Icon } from './Icon';
 
@@ -12,10 +12,24 @@ export function repeatLabel(item: Item): string | null {
   if (r.type === 'daily') return t('Daily');
   if (r.type === 'weekly') return t('Every {day}', { day: weekdayName(r.weekday) });
   if (r.type === 'everyNDays') return t('Every {n} days', { n: r.n });
-  if (r.type === 'weekdays') return t('Work days');
+  if (r.type === 'weekdays') return daysLabel(r.days ?? [1, 2, 3, 4, 5]);
   if (r.type === 'monthly' && item.date) return t('Monthly on the {nth}', { nth: ordinal(Number(item.date.slice(8, 10))) });
   if (r.type === 'yearly' && item.date) return t('Every year on {date}', { date: monthDay(item.date) });
   return null;
+}
+
+/** "Sun–Thu" for a run of days (wrapping past Saturday), otherwise "Mon, Wed, Fri". */
+export function daysLabel(days: number[]): string {
+  const set = new Set(days);
+  if (set.size === 7) return t('Daily');
+  // A run has exactly one day whose previous day isn't chosen; start there.
+  const starts = [...set].filter((d) => !set.has((d + 6) % 7));
+  if (starts.length === 1 && set.size >= 3) {
+    let end = starts[0];
+    while (set.has((end + 1) % 7)) end = (end + 1) % 7;
+    return `${weekdayShort(starts[0])}–${weekdayShort(end)}`;
+  }
+  return [...set].sort((a, b) => a - b).map(weekdayShort).join(', ');
 }
 
 export function reminderLabel(item: Item): string | null {

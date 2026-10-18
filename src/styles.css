@@ -236,7 +236,7 @@ a { color: var(--blue); }
 
 /* Sheet */
 .scrim { position: fixed; inset: 0; background: var(--scrim); z-index: 40; display: flex; align-items: flex-end; justify-content: center; }
-.sheet { width: 100%; max-width: 480px; max-height: 94dvh; overflow-y: auto; background: var(--card); border-radius: 28px 28px 0 0; padding: 12px 22px calc(24px + var(--safe-b)); display: flex; flex-direction: column; gap: 18px; }
+.sheet { width: 100%; max-width: 480px; max-height: 94%; overflow-y: auto; background: var(--card); border-radius: 28px 28px 0 0; padding: 12px 22px calc(24px + var(--safe-b)); display: flex; flex-direction: column; gap: 18px; }
 .grabber { align-self: center; width: 40px; height: 5px; border-radius: 3px; background: var(--grabber); flex-shrink: 0; }
 
 /* Plan */
@@ -351,4 +351,4 @@ a { color: var(--blue); }
 .note-title-input:focus-visible, .note-body-input:focus-visible { outline: none; }
 /* The text box fills the sheet and scrolls itself, so the page never jumps while typing. */
 .note-body-input { border: none; background: transparent; font-size: 16px; line-height: 1.55; width: 100%; resize: none; flex: 1 1 auto; min-height: 45dvh; padding: 0; color: var(--ink); }
-.sheet:has(.note-body-input) { height: 88dvh; }
+.sheet:has(.note-body-input) { height: 92%; }

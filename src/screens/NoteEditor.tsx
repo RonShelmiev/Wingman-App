@@ -40,6 +40,7 @@ export function NoteEditor({ id, onClose }: { id: string; onClose: () => void })
   }, []);
 
   const close = () => {
+    (document.activeElement as HTMLElement | null)?.blur(); // put the keyboard away
     flush();
     if (!draft.current.title.trim() && !draft.current.body.trim()) actions.deleteNote(id);
     onClose();

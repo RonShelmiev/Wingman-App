@@ -2,6 +2,21 @@
 
 Every push is documented here: what changed and why. Newest first.
 
+## 2026-10-18 — Fix: "Done" on a note while typing (iPhone)
+
+**Problem:** on iPhone, tapping **בוצע** on a new note didn't close it.
+
+**Likely cause:** with the keyboard open, iPhone Safari shifts the screen, so the first tap only closed the keyboard or landed beside the button. (In a desktop browser simulating a phone, Done always worked, so this is iPhone-specific.)
+
+**Fixed**
+- Every pop-up sheet now sits in the part of the screen above the keyboard, so its buttons (like **בוצע**) stay visible and in place while typing.
+- Tapping a button in a sheet while typing presses it on the first tap, instead of only closing the keyboard.
+- Closing a note also puts the keyboard away.
+
+**Verified**
+- Touch-screen phone simulation: Done closes a new note with text (saved) and an empty one (removed); with the screen shrunk to half height like an open keyboard, Done stays visible and closes the note on the first tap. Typing, Quick add, welcome and notes tests all still pass. `npm test` 64/64.
+- Not verifiable here: real iPhone Safari. Please try it after updating.
+
 ## 2026-10-15 — Fix: typing in notes
 
 **Problem:** typing in a note jumped the cursor to a button after every letter, so spaces were lost (they "pressed" that button) and the title kept only its first letter.

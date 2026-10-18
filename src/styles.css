@@ -235,7 +235,7 @@ a { color: var(--blue); }
 .nav .fab { width: 56px; height: 56px; min-width: 56px; border-radius: 20px; background: var(--accent); margin-top: -28px; box-shadow: 0 6px 16px rgba(210,75,31,.35); color: var(--on-accent); }
 
 /* Sheet */
-.scrim { position: fixed; inset: 0; background: var(--scrim); z-index: 40; display: flex; align-items: flex-end; justify-content: center; }
+.scrim { position: fixed; inset: 0; background: var(--scrim); z-index: 52; display: flex; align-items: flex-end; justify-content: center; }
 .sheet { width: 100%; max-width: 480px; max-height: 94%; overflow-y: auto; background: var(--card); border-radius: 28px 28px 0 0; padding: 12px 22px calc(24px + var(--safe-b)); display: flex; flex-direction: column; gap: 18px; }
 .grabber { align-self: center; width: 40px; height: 5px; border-radius: 3px; background: var(--grabber); flex-shrink: 0; }
 
@@ -349,6 +349,11 @@ a { color: var(--blue); }
 .note-when { margin-top: auto; font-size: 11px; color: var(--muted); }
 .note-title-input { border: none; background: transparent; font-family: var(--display); font-size: 24px; font-weight: 700; padding: 4px 0; width: 100%; color: var(--ink); }
 .note-title-input:focus-visible, .note-body-input:focus-visible { outline: none; }
-/* The text box fills the sheet and scrolls itself, so the page never jumps while typing. */
-.note-body-input { border: none; background: transparent; font-size: 16px; line-height: 1.55; width: 100%; resize: none; flex: 1 1 auto; min-height: 45dvh; padding: 0; color: var(--ink); }
-.sheet:has(.note-body-input) { height: 92%; }
+/* Note page */
+.note-page { min-height: 100dvh; padding: 0 20px calc(40px + var(--safe-b)); display: flex; flex-direction: column; gap: 6px; }
+.note-bar { position: sticky; top: 0; z-index: 5; background: var(--ground); display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: max(12px, env(safe-area-inset-top)) 0 10px; }
+.note-back { display: inline-flex; align-items: center; gap: 2px; min-height: 44px; border: none; background: none; color: var(--blue); font-size: 16px; font-weight: 500; padding: 0; }
+.note-body-input { border: none; background: transparent; font-size: 17px; line-height: 1.55; width: 100%; resize: none; overflow: hidden; padding: 0; color: var(--ink); min-height: 50dvh; }
+.grow-wrap { display: grid; }
+.grow-wrap::after { content: attr(data-value); white-space: pre-wrap; overflow-wrap: anywhere; visibility: hidden; font-size: 17px; line-height: 1.55; padding: 0; }
+.grow-wrap > textarea, .grow-wrap::after { grid-area: 1 / 1 / 2 / 2; overflow-wrap: anywhere; }

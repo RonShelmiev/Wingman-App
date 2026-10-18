@@ -214,6 +214,8 @@ export function Settings({ today, onTestAlarm }: Props) {
         if (confirm(t('Erase all items? Life areas and settings stay.'))) for (const i of items) actions.deleteItem(i.id);
       }}>{t('Erase all items')}</button>
 
+      <p style={{ textAlign: 'center', fontSize: 12, color: 'var(--muted)', margin: 0 }}>{t('Version {v}', { v: __BUILD_ID__ })}</p>
+
       {editing && <AreaSheet area={editing === 'new' ? null : editing} canDelete={areas.length > 1} onClose={() => setEditing(null)} />}
     </main>
   );

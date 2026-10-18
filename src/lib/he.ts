@@ -381,6 +381,9 @@ export const HE: Record<string, string> = {
   'Unpin': 'ביטול הצמדה',
   'Delete note': 'מחיקת הפתק',
   'Write anything…': 'כותבים כל דבר…',
+  'Back to notes': 'חזרה לפתקים',
+
+  'Version {v}': 'גרסה {v}',
 
   // Updates
   'A new version of Wingman is ready.': 'גרסה חדשה של Wingman מוכנה.',

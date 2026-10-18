@@ -57,7 +57,7 @@ cron-job.org ──every minute──▶ /api/tick ─────────�
 
 ## Notes
 
-`State.notes` holds plain notes (`title`, `body`, `pinned`). They get `updatedAt` stamps and deletion tombstones in the store like items, so they merge between devices and go into backups. UI: `screens/Notes.tsx` (list, search, pinned) and `screens/NoteEditor.tsx` (saves on every keystroke).
+`State.notes` holds plain notes (`title`, `body`, `pinned`). They get `updatedAt` stamps and deletion tombstones in the store like items, so they merge between devices and go into backups. UI: `screens/Notes.tsx` (list, search, pinned) and `screens/NoteEditor.tsx` — a full page, not a pop-up (iPhone Safari misplaces taps on fixed layers while the keyboard is open); it keeps the text locally and saves after a pause, on leaving and when the app is hidden.
 
 ## Sync & backup
 

@@ -1,14 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
 import { actions, getState } from '../lib/store';
 import { undoable } from '../lib/undo';
-import { t } from '../lib/i18n';
-import { Sheet } from '../components/Sheet';
+import { isRtl, t } from '../lib/i18n';
 import { Icon } from '../components/Icon';
 import { noteTitle } from './Notes';
 
 /**
- * Write a note. Typing stays in this screen (so the keyboard is never interrupted) and is saved
- * shortly after you pause, and always when you close. An untouched new note disappears on close.
+ * A note, as a full page (like Apple Notes) rather than a pop-up: iPhone Safari can misplace taps on
+ * pop-up layers while the keyboard is open, which made "Done" unresponsive. Typing stays on this page
+ * and is saved shortly after you pause, when you leave, and when the app goes to the background.
+ * An untouched new note disappears when you leave.
  */
 export function NoteEditor({ id, onClose }: { id: string; onClose: () => void }) {
   const initial = getState().notes.find((n) => n.id === id);
@@ -18,6 +19,7 @@ export function NoteEditor({ id, onClose }: { id: string; onClose: () => void })
   const draft = useRef({ title, body });
   draft.current = { title, body };
   const timer = useRef<number | undefined>(undefined);
+  const bodyRef = useRef<HTMLTextAreaElement>(null);
 
   const flush = () => {
     window.clearTimeout(timer.current);
@@ -25,21 +27,25 @@ export function NoteEditor({ id, onClose }: { id: string; onClose: () => void })
     if (n && (n.title !== draft.current.title || n.body !== draft.current.body)) actions.updateNote(id, draft.current);
   };
 
-  // Save 600 ms after the last keystroke, and whenever the editor goes away (closing, app hidden).
   useEffect(() => {
     window.clearTimeout(timer.current);
     timer.current = window.setTimeout(flush, 600);
   }, [title, body]);
   useEffect(() => {
+    window.scrollTo(0, 0);
+    if (!initial?.title && !initial?.body) bodyRef.current?.focus();
     const onHide = () => document.visibilityState === 'hidden' && flush();
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && done();
     document.addEventListener('visibilitychange', onHide);
+    window.addEventListener('keydown', onKey);
     return () => {
       document.removeEventListener('visibilitychange', onHide);
+      window.removeEventListener('keydown', onKey);
       flush();
     };
   }, []);
 
-  const close = () => {
+  const done = () => {
     (document.activeElement as HTMLElement | null)?.blur(); // put the keyboard away
     flush();
     if (!draft.current.title.trim() && !draft.current.body.trim()) actions.deleteNote(id);
@@ -48,14 +54,17 @@ export function NoteEditor({ id, onClose }: { id: string; onClose: () => void })
 
   if (!initial) return null;
   return (
-    <Sheet label={t('Note')} onClose={close}>
-      <div className="row-between" style={{ alignItems: 'center' }}>
-        <button className="btn small" aria-pressed={pinned} style={{ display: 'inline-flex', gap: 6, alignItems: 'center', minHeight: 44 }}
-          onClick={() => { setPinned(!pinned); actions.updateNote(id, { pinned: !pinned }); }}>
-          <Icon name="pin" size={16} width={2} />{pinned ? t('Unpin') : t('Pin')}
+    <main className="note-page" aria-label={t('Note')}>
+      <header className="note-bar">
+        <button className="note-back" onClick={done} aria-label={t('Back to notes')}>
+          <Icon name={isRtl() ? 'right' : 'left'} size={22} width={2.2} />{t('Notes')}
         </button>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button className="btn small" aria-label={t('Delete note')} style={{ color: 'var(--danger)', minHeight: 44 }}
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <button className="btn small" aria-pressed={pinned} aria-label={pinned ? t('Unpin') : t('Pin')} style={{ minHeight: 44, minWidth: 44, padding: 0 }}
+            onClick={() => { setPinned(!pinned); actions.updateNote(id, { pinned: !pinned }); }}>
+            <Icon name="pin" size={18} width={pinned ? 2.6 : 1.8} />
+          </button>
+          <button className="btn small" aria-label={t('Delete note')} style={{ color: 'var(--danger)', minHeight: 44, minWidth: 44, padding: 0 }}
             onClick={() => {
               flush();
               const name = noteTitle({ ...initial, ...draft.current });
@@ -64,13 +73,16 @@ export function NoteEditor({ id, onClose }: { id: string; onClose: () => void })
             }}>
             <Icon name="trash" size={18} />
           </button>
-          <button className="btn small primary" onClick={close} style={{ minHeight: 44 }}>{t('Done')}</button>
+          <button className="btn small primary" onClick={done} style={{ minHeight: 44, minWidth: 72 }}>{t('Done')}</button>
         </div>
-      </div>
+      </header>
       <input className="note-title-input" dir="auto" placeholder={t('Title')} aria-label={t('Title')} value={title}
         autoComplete="off" onChange={(e) => setTitle(e.target.value)} />
-      <textarea className="note-body-input" dir="auto" placeholder={t('Write anything…')} aria-label={t('Note')} value={body}
-        data-autofocus={!initial.title && !initial.body ? '' : undefined} onChange={(e) => setBody(e.target.value)} />
-    </Sheet>
+      {/* The text box grows with its text (a hidden copy sets the height), so nothing jumps while typing. */}
+      <div className="grow-wrap" data-value={body + ' '}>
+        <textarea ref={bodyRef} className="note-body-input" dir="auto" placeholder={t('Write anything…')} aria-label={t('Note')} value={body}
+          onChange={(e) => setBody(e.target.value)} />
+      </div>
+    </main>
   );
 }

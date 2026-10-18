@@ -178,6 +178,17 @@ export function App() {
 
   if (!onboarded) return <><Welcome /><UpdateBar /></>;
 
+  // A note opens as its own page (no bottom bar, no pop-up layer).
+  if (sheet?.type === 'note') {
+    return (
+      <div className="app" style={{ paddingBottom: 0 }}>
+        <NoteEditor key={sheet.id} id={sheet.id} onClose={() => { setSheet(null); setTab('notes'); }} />
+        <UndoBar />
+        <UpdateBar />
+      </div>
+    );
+  }
+
   return (
     <div className="app">
       {tab === 'today' && <Today now={now} today={today} onEdit={onEdit} onAdd={() => setSheet({ type: 'add' })} onPlan={() => setSheet({ type: 'plan' })} onSettings={() => setTab('settings')} />}
@@ -200,7 +211,6 @@ export function App() {
       {sheet?.type === 'edit' && <QuickAdd key={sheet.item.id + sheet.date} editing={sheet.item} occurrence={sheet.date} today={today} onClose={closeSheet} />}
       {sheet?.type === 'plan' && <Plan today={today} now={now} onClose={closeSheet} />}
       {sheet?.type === 'recap' && <Recap today={today} onClose={closeSheet} />}
-      {sheet?.type === 'note' && <NoteEditor key={sheet.id} id={sheet.id} onClose={closeSheet} />}
 
       <UpdateBar />
       <UndoBar />

@@ -2,6 +2,22 @@
 
 Every push is documented here: what changed and why. Newest first.
 
+## 2026-10-18 — Notes open as a full page; "Done" always closes
+
+**Problem:** on iPhone, tapping **בוצע** in a note did nothing.
+
+**Why it's fixed this way:** in the desktop phone-simulation "Done" always worked, so the cause is iPhone Safari itself: while the keyboard is open it can misplace taps on pop-up layers that float over the page. Rather than patching around that, a note is no longer a pop-up.
+
+**Changed**
+- A note now opens as its **own full page** (like Apple Notes): a bar at the top with **← פתקים** (back), pin, delete and **בוצע**. Both back and Done save and return to the list; an empty new note is removed.
+- The text grows with what you write and the page scrolls normally, so nothing jumps while typing.
+- Pop-up sheets now sit above the "update available" bar and messages, so those can never cover a sheet's buttons.
+- Settings shows the app's **version** at the bottom, so we can check which version a phone is running.
+
+**Verified**
+- Touch-screen phone simulation: Done closes a new note with text (saved) and an empty one (removed); key-by-key typing in title and text keeps every character; back saves; pin, search, delete + Undo, reload all still pass; Quick add, welcome and area-name typing unaffected. `npm test` 64/64.
+- Not verifiable here: real iPhone Safari — please try after updating (check the version at the bottom of Settings changed).
+
 ## 2026-10-18 — Fix: "Done" on a note while typing (iPhone)
 
 **Problem:** on iPhone, tapping **בוצע** on a new note didn't close it.

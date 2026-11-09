@@ -11,7 +11,8 @@ import { noteTitle } from './Notes';
  * and is saved shortly after you pause, when you leave, and when the app goes to the background.
  * An untouched new note disappears when you leave.
  */
-export function NoteEditor({ id, onClose }: { id: string; onClose: () => void }) {
+/** `onClose` saves and goes back; `onComplete` is "Done": the list strikes the note through and removes it. */
+export function NoteEditor({ id, onClose, onComplete }: { id: string; onClose: () => void; onComplete: () => void }) {
   const initial = getState().notes.find((n) => n.id === id);
   const [title, setTitle] = useState(initial?.title ?? '');
   const [body, setBody] = useState(initial?.body ?? '');
@@ -35,7 +36,7 @@ export function NoteEditor({ id, onClose }: { id: string; onClose: () => void })
     window.scrollTo(0, 0);
     if (!initial?.title && !initial?.body) bodyRef.current?.focus();
     const onHide = () => document.visibilityState === 'hidden' && flush();
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && done();
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && close();
     document.addEventListener('visibilitychange', onHide);
     window.addEventListener('keydown', onKey);
     return () => {
@@ -45,18 +46,22 @@ export function NoteEditor({ id, onClose }: { id: string; onClose: () => void })
     };
   }, []);
 
-  const done = () => {
+  /** Save and leave. An empty note is removed; with `complete`, a written one is struck through and removed too. */
+  const leave = (complete: boolean) => {
     (document.activeElement as HTMLElement | null)?.blur(); // put the keyboard away
     flush();
-    if (!draft.current.title.trim() && !draft.current.body.trim()) actions.deleteNote(id);
-    onClose();
+    const empty = !draft.current.title.trim() && !draft.current.body.trim();
+    if (empty) actions.deleteNote(id);
+    if (complete && !empty) onComplete();
+    else onClose();
   };
+  const close = () => leave(false);
 
   if (!initial) return null;
   return (
     <main className="note-page" aria-label={t('Note')}>
       <header className="note-bar">
-        <button className="note-back" onClick={done} aria-label={t('Back to notes')}>
+        <button className="note-back" onClick={close} aria-label={t('Back to notes')}>
           <Icon name={isRtl() ? 'right' : 'left'} size={22} width={2.2} />{t('Notes')}
         </button>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
@@ -73,7 +78,9 @@ export function NoteEditor({ id, onClose }: { id: string; onClose: () => void })
             }}>
             <Icon name="trash" size={18} />
           </button>
-          <button className="btn small primary" onClick={done} style={{ minHeight: 44, minWidth: 72 }}>{t('Done')}</button>
+          <button className="btn small primary" onClick={() => leave(true)} aria-label={t('Mark done')} style={{ minHeight: 44, minWidth: 72, gap: 6 }}>
+            <Icon name="check" size={18} width={2.4} />{t('Done')}
+          </button>
         </div>
       </header>
       <input className="note-title-input" dir="auto" placeholder={t('Title')} aria-label={t('Title')} value={title}

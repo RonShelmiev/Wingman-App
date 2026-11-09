@@ -2,6 +2,19 @@
 
 Every push is documented here: what changed and why. Newest first.
 
+## 2026-11-09 — Notes: Done completes the note
+
+**Problem:** tapping **בוצע** in a note only closed it. What's wanted: Done means *finished*, so the note should be crossed out and go away.
+
+**Changed**
+- **בוצע / Done** in a note now completes it: back on the list a line draws through the note, it fades and shrinks away, and is removed. **Undo** ("בוצע: …") brings it back for 6 seconds.
+- Each note in the list has a round tick, like tasks, to complete it without opening it.
+- **← פתקים** (back) still just saves and closes. An empty new note is still simply discarded.
+- Reduced-motion phones skip the animation and remove the note quickly.
+
+**Verified**
+- Touch-phone run in Hebrew (Chromium, 390×844): tick from the list → strike-through (screenshot) → removed → Undo restores it; open a note, type, tap בוצע → list shows the strike-through, then it's gone; back keeps the note with its edit; empty new note + בוצע leaves nothing; all survive a reload; no page errors. `npm test` 64/64, typecheck and build clean.
+
 ## 2026-10-18 — Notes open as a full page; "Done" always closes
 
 **Problem:** on iPhone, tapping **בוצע** in a note did nothing.

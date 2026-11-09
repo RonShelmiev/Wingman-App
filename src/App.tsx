@@ -33,6 +33,8 @@ export function App() {
   const [sheet, setSheet] = useState<SheetState>(() => (new URLSearchParams(location.search).has('recap') ? { type: 'recap' } : null));
   const [rings, setRings] = useState<Ring[]>([]);
   const [toasts, setToasts] = useState<Toast[]>([]);
+  /** Note marked done in the editor; the list plays its strike-through. */
+  const [noteDone, setNoteDone] = useState<string | null>(null);
   const areas = useStore((s) => s.areas);
   const theme = useStore((s) => s.settings.theme);
   const language = useStore((s) => s.settings.language);
@@ -182,7 +184,8 @@ export function App() {
   if (sheet?.type === 'note') {
     return (
       <div className="app" style={{ paddingBottom: 0 }}>
-        <NoteEditor key={sheet.id} id={sheet.id} onClose={() => { setSheet(null); setTab('notes'); }} />
+        <NoteEditor key={sheet.id} id={sheet.id} onClose={() => { setSheet(null); setTab('notes'); }}
+          onComplete={() => { setNoteDone(sheet.id); setSheet(null); setTab('notes'); }} />
         <UndoBar />
         <UpdateBar />
       </div>
@@ -194,7 +197,7 @@ export function App() {
       {tab === 'today' && <Today now={now} today={today} onEdit={onEdit} onAdd={() => setSheet({ type: 'add' })} onPlan={() => setSheet({ type: 'plan' })} onSettings={() => setTab('settings')} />}
       {tab === 'week' && <Week today={today} onEdit={onEdit} />}
       {tab === 'reminders' && <Reminders today={today} onEdit={onEdit} />}
-      {tab === 'notes' && <Notes today={today} onOpen={(id) => setSheet({ type: 'note', id })} onNew={newNote} />}
+      {tab === 'notes' && <Notes today={today} onOpen={(id) => setSheet({ type: 'note', id })} onNew={newNote} completing={noteDone} onCompleted={() => setNoteDone(null)} />}
       {tab === 'settings' && <Settings today={today} onTestAlarm={testAlarm} />}
 
       <nav className="nav" aria-label={t('Main')}>

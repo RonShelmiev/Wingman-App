@@ -2,6 +2,18 @@
 
 Every push is documented here: what changed and why. Newest first.
 
+## 2026-11-09 — Notes: a pen crosses the note out
+
+**Changed**
+- Completing a note now looks like crossing it out by hand: a line moves across the text **row by row in reading order** (right-to-left for Hebrew, left-to-right for English) at a steady writing speed, with an orange **pen tip** at its leading end, while the text fades behind it. Long notes speed up so it never takes more than ~1.6 s; then the card fades away as before.
+
+**Fixed**
+- An English note in the Hebrew app (or the reverse) had the tick button over its title; the card now keeps the app's direction and only the text follows its own language.
+- A title that wraps onto two rows got one line between the rows instead of one through each.
+
+**Verified**
+- Frame-by-frame screenshots at iPhone 16 Pro size (402×874): Hebrew note struck right-to-left row by row, English note left-to-right with each title row struck separately, pen tip on the moving end, fade-out after. Full notes flow (tick, Undo, Done from a note, back, empty note, reload) passes with no page errors. `npm test` 64/64, typecheck and build clean.
+
 ## 2026-11-09 — Notes: Done completes the note
 
 **Problem:** tapping **בוצע** in a note only closed it. What's wanted: Done means *finished*, so the note should be crossed out and go away.

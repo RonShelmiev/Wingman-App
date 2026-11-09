@@ -347,16 +347,23 @@ a { color: var(--blue); }
 .note-title svg { color: var(--accent); flex-shrink: 0; }
 .note-preview { font-size: 13px; color: var(--muted-2); line-height: 1.4; white-space: pre-line; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow-wrap: anywhere; }
 .note-when { margin-top: auto; font-size: 11px; color: var(--muted); }
-/* Done: a line draws through the note, then it fades and shrinks away. */
+/* Done: a pen crosses out each row in reading order (rows measured in Notes.tsx), then the card fades away. */
 .note-item { position: relative; }
 .note-item .note-card { padding-inline-end: 44px; }
 .note-check { position: absolute; top: 4px; inset-inline-end: 4px; }
-.strike { background: linear-gradient(currentColor, currentColor) no-repeat 0 55% / 0 2px; box-decoration-break: clone; -webkit-box-decoration-break: clone; transition: background-size var(--strike-ms, 450ms) ease-out, color var(--strike-ms, 450ms); }
-[dir="rtl"] .strike { background-position-x: 100%; }
-.note-item.leaving .strike { background-size: 100% 2px; color: var(--muted); }
-.note-item.leaving { animation: note-out .35s ease-in var(--strike-ms, 450ms) forwards; pointer-events: none; }
+.strike { transition: color .4s; }
+.note-item.leaving .strike { color: var(--muted); transition-duration: var(--strike-total, 450ms); }
+.pen-stroke { position: absolute; width: 0; height: 2px; margin-top: -1px; border-radius: 2px; background: var(--ink); pointer-events: none;
+  animation-name: pen-draw; animation-timing-function: linear; animation-fill-mode: forwards; }
+/* The pen tip rides on the leading end of the line while it's drawing. */
+.pen-stroke::after { content: ''; position: absolute; top: -2px; right: -3px; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); opacity: 0;
+  animation: pen-tip 1s linear forwards; animation-delay: inherit; animation-duration: inherit; }
+.pen-stroke.rtl::after { right: auto; left: -3px; }
+@keyframes pen-draw { to { width: var(--w); } }
+@keyframes pen-tip { 0% { opacity: 1; } 99% { opacity: 1; } 100% { opacity: 0; } }
+.note-item.leaving { animation: note-out .35s ease-in var(--strike-total, 450ms) forwards; pointer-events: none; }
 @keyframes note-out { to { opacity: 0; transform: scale(.94); } }
-@media (prefers-reduced-motion: reduce) { .strike { transition: none; } .note-item.leaving { animation-duration: .15s; animation-delay: 0s; } }
+@media (prefers-reduced-motion: reduce) { .note-item.leaving { animation-duration: .15s; animation-delay: 0s; } }
 .note-title-input { border: none; background: transparent; font-family: var(--display); font-size: 24px; font-weight: 700; padding: 4px 0; width: 100%; color: var(--ink); }
 .note-title-input:focus-visible, .note-body-input:focus-visible { outline: none; }
 /* Note page */

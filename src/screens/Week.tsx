@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import type { Item } from '../lib/types';
 import { useStore } from '../lib/store';
 import { itemsOn } from '../lib/schedule';
@@ -8,7 +8,8 @@ import { Icon } from '../components/Icon';
 import { moveToTomorrow, postpone, remove, toggle } from '../lib/itemActions';
 import { isRtl, t, tn } from '../lib/i18n';
 
-export function Week({ today, onEdit }: { today: string; onEdit: (i: Item, date: string) => void }) {
+/** The week overview: how full each day is and where your time goes. `top` sits under the header (the calendar's view switcher). */
+export function Week({ today, onEdit, top }: { today: string; onEdit: (i: Item, date: string) => void; top?: ReactNode }) {
   const items = useStore((s) => s.items);
   const areas = useStore((s) => s.areas);
   const settings = useStore((s) => s.settings);
@@ -52,6 +53,8 @@ export function Week({ today, onEdit }: { today: string; onEdit: (i: Item, date:
           <button className="btn small" style={{ width: 44, height: 44, padding: 0 }} onClick={() => go(1)} aria-label={t('Next week')}><Icon name={isRtl() ? 'left' : 'right'} size={20} width={2} /></button>
         </div>
       </header>
+
+      {top}
 
       <section className="week" aria-label={t('How full each day is')}>
         {days.map((d) => {

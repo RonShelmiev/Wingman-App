@@ -14,6 +14,8 @@ interface Props {
   editing: Item | null;
   /** The occurrence that was tapped (matters for repeating items). */
   occurrence: string | null;
+  /** New item from a tapped calendar slot: start on that day (and time). */
+  prefill?: { date: string; start: string | null };
   today: string;
   onClose: () => void;
 }
@@ -46,7 +48,7 @@ function toRepeat(k: RepeatKey, date: string, workDays: number[], days: number[]
   }
 }
 
-export function QuickAdd({ editing, occurrence, today, onClose }: Props) {
+export function QuickAdd({ editing, occurrence, prefill, today, onClose }: Props) {
   const areas = useStore((s) => s.areas);
   const history = useStore((s) => s.history);
   const timer = useStore((s) => s.timer);
@@ -58,10 +60,11 @@ export function QuickAdd({ editing, occurrence, today, onClose }: Props) {
   const [touched, setTouched] = useState<Set<string>>(new Set());
   const [f, setF] = useState(() => ({
     title: editing?.title ?? '',
-    kind: (editing?.kind ?? 'task') as Kind,
+    // A tapped time slot in the calendar starts as an event, like in Google Calendar.
+    kind: (editing?.kind ?? (prefill?.start ? 'event' : 'task')) as Kind,
     // A repeating item shows the day you tapped, not the day the series started.
-    date: editing ? (isRepeating(editing) ? occ : editing.date ?? '') : today,
-    start: editing?.start ?? '',
+    date: editing ? (isRepeating(editing) ? occ : editing.date ?? '') : prefill?.date ?? today,
+    start: editing?.start ?? prefill?.start ?? '',
     durationMin: editing?.durationMin ?? 30,
     remindOffsetMin: editing?.remindOffsetMin ?? (null as number | null),
     channel: (editing?.channel ?? 'push') as Channel,
@@ -84,8 +87,9 @@ export function QuickAdd({ editing, occurrence, today, onClose }: Props) {
       const next = { ...prev, title: p.title };
       const maybe = <K extends keyof typeof f>(k: K, v: (typeof f)[K]) => { if (!touched.has(k)) next[k] = v; };
       maybe('kind', p.kind);
-      maybe('date', p.date ?? today);
-      maybe('start', p.start ?? '');
+      // Words in the sentence win; otherwise keep the calendar slot that was tapped.
+      maybe('date', p.date ?? prefill?.date ?? today);
+      maybe('start', p.start ?? prefill?.start ?? '');
       const learned = p.durationMin === null ? durationForTitle(history, p.title) : null;
       setLearnedHint(learned && !touched.has('durationMin') ? t('You usually need {d} for this', { d: formatDuration(learned) }) : null);
       maybe('durationMin', p.durationMin ?? learned ?? 30);

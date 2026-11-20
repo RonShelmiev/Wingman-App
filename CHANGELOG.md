@@ -2,6 +2,17 @@
 
 Every push is documented here: what changed and why. Newest first.
 
+## 2026-11-20 — Calendar: Day / Week / Month
+
+**Added**
+- **Calendar tab** (replaces Week): a Google Calendar–style view with **Day**, **Week** and **Month**, plus **Overview** (the old week screen: how full each day is, where your time goes).
+  - Day and Week: an hour grid; items are blocks colored by life area, side by side when they overlap; a red line for now; items without a time sit in an "Any time" row on top. Opens at your day start, or near now on today.
+  - Month: 6-week grid with up to 3 items per day and "+N"; tap a day to open it.
+  - Tap an empty slot to add something there (date and time filled in, starts as an Event). Tap an item to edit it. Swipe sideways or use the arrows to move; **Today** jumps back. Week view: tap a day's header to open that day. Right-to-left in Hebrew. The last view you used is remembered.
+
+**Verified**
+- Phone-size Chromium (402×874), English and Hebrew, light and dark: all four views, overlapping items, tap-to-add fills the date and time, no page errors. `npm test` 68/68, typecheck and build clean.
+
 ## 2026-11-09 — Notes: a pen crosses the note out
 
 **Changed**

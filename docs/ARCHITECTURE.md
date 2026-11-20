@@ -55,6 +55,10 @@ cron-job.org ──every minute──▶ /api/tick ─────────�
 - Dead subscriptions (HTTP 404/410 from the push service) are cleared automatically; devices unseen for 60 days expire.
 - The app ignores reminders more than 10 minutes old when it reopens (the server already delivered them), so alarms never ring late.
 
+## Calendar
+
+`screens/Calendar.tsx`: Day / Week / Month views plus Overview (`screens/Week.tsx`). Layout is in `lib/calendar.ts`: `layoutDay()` places timed items on the hour grid (overlap groups → columns; reminders get a 30-min block), `monthGrid()` gives the 42 days of a month view. The chosen view is remembered per device (`localStorage` `wingman:calview`). Tapping an empty slot opens Quick add with `prefill` (date/time); words typed in Quick add still win.
+
 ## Notes
 
 `State.notes` holds plain notes (`title`, `body`, `pinned`). They get `updatedAt` stamps and deletion tombstones in the store like items, so they merge between devices and go into backups. UI: `screens/Notes.tsx` (list, search, pinned) and `screens/NoteEditor.tsx` — a full page, not a pop-up (iPhone Safari misplaces taps on fixed layers while the keyboard is open); it keeps the text locally and saves after a pause, on leaving and when the app is hidden.

@@ -16,7 +16,7 @@ function sources(dir: string): string[] {
 // Strings passed to t() through a variable (option lists, error messages).
 const INDIRECT = [
   'No reminder', 'At the time', '5 min before', '10 min before', '15 min before', '30 min before', '1 hour before', '2 hours before', '1 day before',
-  'Push', 'Email', 'Alarm', 'Silent', 'Task', 'Event', 'Reminder', 'Auto', 'Light', 'Dark',
+  'Push', 'Email', 'Alarm', 'Silent', 'Task', 'Event', 'Reminder', 'Auto', 'Light', 'Dark', 'Day', 'Week', 'Month', 'Overview',
   'Couldn’t unlock the synced data. Check the sync code.', 'Offline — will sync when you’re back online',
   'That code doesn’t look right. It has 32 letters and numbers.', 'Sync kept conflicting; will retry shortly.',
   'Server storage is not set up yet', 'This file is not a Wingman backup.',

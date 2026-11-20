@@ -60,11 +60,13 @@ const EN = {
   dow: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
   dowLong: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
   mon: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+  monLong: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
 };
 const HEB = {
   dow: ['א׳', 'ב׳', 'ג׳', 'ד׳', 'ה׳', 'ו׳', 'ש׳'],
   dowLong: ['יום ראשון', 'יום שני', 'יום שלישי', 'יום רביעי', 'יום חמישי', 'יום שישי', 'שבת'],
   mon: ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'],
+  monLong: ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'],
 };
 const L = () => (getLang() === 'he' ? HEB : EN);
 
@@ -73,6 +75,8 @@ export const dowLong = (s: string) => L().dowLong[parseDate(s).getDay()];
 export const weekdayName = (n: number) => L().dowLong[n];
 export const weekdayShort = (n: number) => L().dow[n];
 export const monthShort = (s: string) => L().mon[parseDate(s).getMonth()];
+/** "November 2026" / "נובמבר 2026" */
+export const monthYear = (s: string) => `${L().monLong[parseDate(s).getMonth()]} ${s.slice(0, 4)}`;
 export const dayNum = (s: string) => parseDate(s).getDate();
 /** "Oct 20" / "20 באוקטובר" */
 export const monthDay = (s: string) => (getLang() === 'he' ? `${dayNum(s)} ב${monthShort(s)}` : `${monthShort(s)} ${dayNum(s)}`);

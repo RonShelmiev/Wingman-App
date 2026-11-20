@@ -14,17 +14,17 @@ import { NoteEditor } from './screens/NoteEditor';
 import { t, tn } from './lib/i18n';
 import { prettyDate } from './lib/dates';
 import { Today } from './screens/Today';
-import { Week } from './screens/Week';
+import { Calendar } from './screens/Calendar';
 import { Reminders } from './screens/Reminders';
 import { Settings } from './screens/Settings';
 import { QuickAdd } from './screens/QuickAdd';
 import { Plan } from './screens/Plan';
 import { AlarmOverlay } from './screens/AlarmOverlay';
 
-type Tab = 'today' | 'week' | 'reminders' | 'notes' | 'settings';
+type Tab = 'today' | 'calendar' | 'reminders' | 'notes' | 'settings';
 interface Ring { item: Item; date: string; key: string; test?: boolean }
 interface Toast { id: string; title: string; body: string; action?: { label: string; run: () => void } }
-type SheetState = { type: 'add' } | { type: 'edit'; item: Item; date: string } | { type: 'plan' } | { type: 'recap' } | { type: 'note'; id: string } | null;
+type SheetState = { type: 'add'; prefill?: { date: string; start: string | null } } | { type: 'edit'; item: Item; date: string } | { type: 'plan' } | { type: 'recap' } | { type: 'note'; id: string } | null;
 
 export function App() {
   const [now, setNow] = useState(() => new Date());
@@ -174,7 +174,7 @@ export function App() {
   };
 
   const closeSheet = useCallback(() => setSheet(null), []);
-  const nav: [Tab, string, string][] = [['today', t('Today'), 'today'], ['week', t('Week'), 'week'], ['reminders', t('Reminders'), 'bell'], ['notes', t('Notes'), 'note'], ['settings', t('Settings'), 'settings']];
+  const nav: [Tab, string, string][] = [['today', t('Today'), 'today'], ['calendar', t('Calendar'), 'week'], ['reminders', t('Reminders'), 'bell'], ['notes', t('Notes'), 'note'], ['settings', t('Settings'), 'settings']];
   const newNote = () => setSheet({ type: 'note', id: actions.addNote() });
   const onEdit = (item: Item, date: string) => setSheet({ type: 'edit', item, date });
 
@@ -195,7 +195,7 @@ export function App() {
   return (
     <div className="app">
       {tab === 'today' && <Today now={now} today={today} onEdit={onEdit} onAdd={() => setSheet({ type: 'add' })} onPlan={() => setSheet({ type: 'plan' })} onSettings={() => setTab('settings')} />}
-      {tab === 'week' && <Week today={today} onEdit={onEdit} />}
+      {tab === 'calendar' && <Calendar today={today} now={now} onEdit={onEdit} onAddAt={(date, start) => setSheet({ type: 'add', prefill: { date, start } })} />}
       {tab === 'reminders' && <Reminders today={today} onEdit={onEdit} />}
       {tab === 'notes' && <Notes today={today} onOpen={(id) => setSheet({ type: 'note', id })} onNew={newNote} completing={noteDone} onCompleted={() => setNoteDone(null)} />}
       {tab === 'settings' && <Settings today={today} onTestAlarm={testAlarm} />}
@@ -210,7 +210,7 @@ export function App() {
         ))}
       </nav>
 
-      {sheet?.type === 'add' && <QuickAdd editing={null} occurrence={null} today={today} onClose={closeSheet} />}
+      {sheet?.type === 'add' && <QuickAdd editing={null} occurrence={null} prefill={sheet.prefill} today={today} onClose={closeSheet} />}
       {sheet?.type === 'edit' && <QuickAdd key={sheet.item.id + sheet.date} editing={sheet.item} occurrence={sheet.date} today={today} onClose={closeSheet} />}
       {sheet?.type === 'plan' && <Plan today={today} now={now} onClose={closeSheet} />}
       {sheet?.type === 'recap' && <Recap today={today} onClose={closeSheet} />}

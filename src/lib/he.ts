@@ -398,4 +398,20 @@ export const HE: Record<string, string> = {
   'Read 30 pages': 'לקרוא 30 עמודים',
   'Take vitamins': 'לקחת ויטמינים',
   'Dentist': 'רופא שיניים',
+
+  // Calendar
+  'Calendar': 'יומן',
+  'Calendar view': 'תצוגת יומן',
+  'Day': 'יום',
+  'Month': 'חודש',
+  'Overview': 'סיכום',
+  'Previous month': 'החודש הקודם',
+  'Previous day': 'היום הקודם',
+  'Next month': 'החודש הבא',
+  'Next day': 'היום הבא',
+  'Open {day}': 'פתיחת {day}',
+  'Any time': 'בלי שעה',
+  '+{n} more': '+{n} נוספים',
+  'done': 'בוצע',
+
 };
